@@ -52,6 +52,7 @@ export default function StudentSchedulePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [items, setItems] = useState<ScheduleItem[]>([]);
+  const [now] = useState(() => Date.now());
 
   useEffect(() => {
     (async () => {
@@ -133,7 +134,7 @@ export default function StudentSchedulePage() {
           {items.map((item, idx) => {
             const date = new Date(item.startAt);
             const isToday = new Date().toDateString() === date.toDateString();
-            const isPast = date.getTime() < Date.now();
+            const isPast = date.getTime() < now;
 
             return (
               <div

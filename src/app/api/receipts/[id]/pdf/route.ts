@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jsonError } from "@/lib/api-response";
-import { requireRouteAuth } from "@/lib/route-auth";
+import { requireMappedRoutePermissionAuth } from "@/lib/route-auth";
 
 /**
  * GET /api/receipts/[id]/pdf — Generate printable receipt HTML
@@ -83,8 +83,8 @@ type ReceiptWithRelations = {
 };
 
 export async function GET(req: Request, ctx: Ctx) {
-  const { error } = requireRouteAuth(req);
-  if (error) return error;
+  const authResult = await requireMappedRoutePermissionAuth(req);
+  if (authResult.error) return authResult.error;
 
   try {
     const { id } = await ctx.params;

@@ -809,7 +809,7 @@ export default function AnalyticsPage() {
                                     </div>
                                 ))}
                             </div>
-                        ) : showInsights ? <p className="text-xs text-[color:var(--fg-muted)]">Chưa có insight. Nhấn "⚡ Tạo insight mới" để AI phân tích.</p> : null}
+                        ) : showInsights ? <p className="text-xs text-[color:var(--fg-muted)]">Chưa có insight. Nhấn &quot;⚡ Tạo insight mới&quot; để AI phân tích.</p> : null}
                     </div>
 
                     {/* ── AI Chatbot ── */}

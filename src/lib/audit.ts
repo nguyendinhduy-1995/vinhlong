@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import type { Prisma } from "@prisma/client";
 
 /**
  * Audit Trail — log important CRM actions for traceability

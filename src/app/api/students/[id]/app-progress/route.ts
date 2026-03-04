@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jsonError } from "@/lib/api-response";
+import { requireMappedRoutePermissionAuth } from "@/lib/route-auth";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function GET(req: Request, context: RouteContext) {
+    const authResult = await requireMappedRoutePermissionAuth(req);
+    if (authResult.error) return authResult.error;
+
     try {
         const { id: studentId } = await context.params;
 

@@ -5,7 +5,25 @@ export type AdminMenuItem = {
   group: string;
   keywords?: string[];
   icon?: string;
+  /** If set, only these roles can see this item. Empty/undefined = visible to all. */
+  roles?: string[];
 };
+
+/** Roles that manage the full system */
+const ADMIN_ROLES = ["admin", "manager"];
+/** Branch staff + admin */
+const BRANCH_AND_ADMIN = ["admin", "manager", "telesales"];
+
+/**
+ * Filter menu items by user role.
+ * Items without `roles` field are visible to all authenticated users.
+ */
+export function filterMenuByRole(items: AdminMenuItem[], role: string): AdminMenuItem[] {
+  return items.filter((item) => {
+    if (!item.roles || item.roles.length === 0) return true;
+    return item.roles.includes(role);
+  });
+}
 
 /* ── Group-level colour tokens (gradient pair + accent for active state) ── */
 export const GROUP_COLORS: Record<string, { from: string; to: string; accent: string; bg: string; text: string; icon: string }> = {
@@ -41,6 +59,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tổng quan",
     keywords: ["tro ly cong viec", "goi y", "khuyen nghi", "hieu suat"],
     icon: "🤖",
+    roles: ADMIN_ROLES,
   },
   {
     key: "kpi-targets",
@@ -49,6 +68,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tổng quan",
     keywords: ["target", "chi tieu", "kpi target", "ngay trong tuan"],
     icon: "🎯",
+    roles: ADMIN_ROLES,
   },
   {
     key: "goals",
@@ -57,6 +77,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tổng quan",
     keywords: ["goals", "muc tieu", "doanh thu", "ho so", "chi phi"],
     icon: "📅",
+    roles: ADMIN_ROLES,
   },
   {
     key: "notifications",
@@ -73,6 +94,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tổng quan",
     keywords: ["analytics", "phan tich", "truy cap", "traffic", "website", "người dùng"],
     icon: "📈",
+    roles: ADMIN_ROLES,
   },
   {
     key: "leads",
@@ -97,6 +119,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Khách & Tư vấn",
     keywords: ["goi nhac", "goi", "sms", "zns", "nhan tin"],
     icon: "📞",
+    roles: BRANCH_AND_ADMIN,
   },
   {
     key: "receipts",
@@ -113,6 +136,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tài chính",
     keywords: ["chi phi", "expense", "tong hop", "luong co ban"],
     icon: "💸",
+    roles: ADMIN_ROLES,
   },
   {
     key: "me-payroll",
@@ -137,6 +161,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tài chính",
     keywords: ["kpi nhan su", "hr", "hieu suat"],
     icon: "📉",
+    roles: ADMIN_ROLES,
   },
   {
     key: "students",
@@ -169,6 +194,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Học viên & Lịch",
     keywords: ["noi dung", "tai lieu", "hoc lieu"],
     icon: "📝",
+    roles: ADMIN_ROLES,
   },
   {
     key: "instructors",
@@ -177,6 +203,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Học viên & Lịch",
     keywords: ["giao vien", "instructor", "thuc hanh", "gv"],
     icon: "👨‍🏫",
+    roles: ADMIN_ROLES,
   },
   {
     key: "automation-run",
@@ -185,6 +212,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tự động hoá",
     keywords: ["automation", "chay tay", "workflow", "tu dong"],
     icon: "🔄",
+    roles: ADMIN_ROLES,
   },
   {
     key: "automation-logs",
@@ -193,6 +221,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tự động hoá",
     keywords: ["log", "lich su chay", "retry", "job"],
     icon: "📜",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-cron",
@@ -201,6 +230,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tự động hoá",
     keywords: ["cron", "scheduler", "lich chay"],
     icon: "⏱️",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-scheduler",
@@ -209,6 +239,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tự động hoá",
     keywords: ["scheduler", "lich", "job"],
     icon: "📆",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-worker",
@@ -217,6 +248,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tự động hoá",
     keywords: ["worker", "queue", "hang doi", "tin nhan"],
     icon: "📨",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-n8n",
@@ -225,6 +257,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tự động hoá",
     keywords: ["n8n", "workflow", "integration", "ops"],
     icon: "🔗",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-automation-monitor",
@@ -233,6 +266,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tự động hoá",
     keywords: ["giam sat", "luong tu dong", "monitor", "run", "job", "log"],
     icon: "📡",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-ops",
@@ -241,6 +275,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tự động hoá",
     keywords: ["ops pulse", "marketing", "bao cao", "report"],
     icon: "📊",
+    roles: ADMIN_ROLES,
   },
   {
     key: "marketing",
@@ -249,6 +284,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tự động hoá",
     keywords: ["marketing", "meta", "ads", "bao cao"],
     icon: "📣",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-users",
@@ -257,6 +293,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Quản trị",
     keywords: ["user", "tai khoan", "phan quyen"],
     icon: "👥",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-permissions",
@@ -265,6 +302,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Quản trị",
     keywords: ["rbac", "phan quyen", "group", "override"],
     icon: "🔐",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-settings",
@@ -273,6 +311,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Quản trị",
     keywords: ["cai dat", "settings", "feature", "tinh nang", "bat tat"],
     icon: "⚙️",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-guide",
@@ -281,6 +320,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Quản trị",
     keywords: ["huong dan", "runbook", "quy trinh", "tai lieu"],
     icon: "📖",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-ai-guide",
@@ -289,6 +329,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Quản trị",
     keywords: ["tro ly cong viec", "huong dan ai", "goi y", "kpi"],
     icon: "🤖",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-ops-guide",
@@ -297,6 +338,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Quản trị",
     keywords: ["so tay", "huong dan van hanh", "quy trinh", "van hanh"],
     icon: "📒",
+    roles: ADMIN_ROLES,
   },
   {
     key: "api-hub",
@@ -305,6 +347,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Quản trị",
     keywords: ["api", "integration", "tich hop", "hub", "swagger"],
     icon: "🌐",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-branches",
@@ -313,6 +356,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Quản trị",
     keywords: ["branch", "co so", "dia diem"],
     icon: "🏢",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-assign-leads",
@@ -321,6 +365,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Quản trị",
     keywords: ["phan bo", "chia lead", "chia khach"],
     icon: "🔀",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-notifications",
@@ -329,6 +374,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Quản trị",
     keywords: ["thong bao", "notification"],
     icon: "🔔",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-tuition-plans",
@@ -337,6 +383,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Quản trị",
     keywords: ["hoc phi", "tuition", "goi hoc phi"],
     icon: "💳",
+    roles: ADMIN_ROLES,
   },
   {
     key: "hr-attendance",
@@ -345,6 +392,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Quản trị",
     keywords: ["attendance", "cong", "diem danh nhan su"],
     icon: "✅",
+    roles: ADMIN_ROLES,
   },
   {
     key: "hr-salary-profiles",
@@ -353,6 +401,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Quản trị",
     keywords: ["salary profile", "muc luong", "ho so"],
     icon: "📄",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-tracking",
@@ -361,6 +410,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Quản trị",
     keywords: ["tracking", "gtag", "pixel", "analytics", "ga4", "meta", "tiktok"],
     icon: "📡",
+    roles: ADMIN_ROLES,
   },
   {
     key: "admin-meta-capi",
@@ -369,5 +419,6 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Quản trị",
     keywords: ["meta", "pixel", "facebook", "capi", "conversion", "ads"],
     icon: "📊",
+    roles: ADMIN_ROLES,
   },
 ];

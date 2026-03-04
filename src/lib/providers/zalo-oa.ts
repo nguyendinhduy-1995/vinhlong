@@ -10,7 +10,6 @@
 import type {
     ZNSRequest,
     ZNSResponse,
-    OATextRequest,
     OATextResponse,
     ZaloOAConfig,
     DeliveryStatus,

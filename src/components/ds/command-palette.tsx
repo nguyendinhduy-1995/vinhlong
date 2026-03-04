@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ADMIN_MENU, type AdminMenuItem } from "@/lib/admin-menu";
 
@@ -43,14 +43,28 @@ export function CommandPalette() {
         return acc;
     }, {});
 
-    const flatItems = Object.values(grouped).flat();
+    const flatItems = useMemo(() => Object.values(grouped).flat(), [grouped]);
+
+    /* Store refs for stable callback access */
+    const flatItemsRef = useRef(flatItems);
+    const selectedIndexRef = useRef(selectedIndex);
+    useEffect(() => {
+        flatItemsRef.current = flatItems;
+        selectedIndexRef.current = selectedIndex;
+    });
 
     /* Keyboard shortcuts ── Cmd+K / Ctrl+K */
     useEffect(() => {
         function onKeyDown(e: KeyboardEvent) {
             if ((e.metaKey || e.ctrlKey) && e.key === "k") {
                 e.preventDefault();
-                setOpen((prev) => !prev);
+                setOpen((prev) => {
+                    if (!prev) {
+                        setQuery("");
+                        setSelectedIndex(0);
+                    }
+                    return !prev;
+                });
             }
         }
         document.addEventListener("keydown", onKeyDown);
@@ -60,8 +74,6 @@ export function CommandPalette() {
     /* Focus input when opening */
     useEffect(() => {
         if (open) {
-            setQuery("");
-            setSelectedIndex(0);
             setTimeout(() => inputRef.current?.focus(), 50);
         }
     }, [open]);
@@ -86,17 +98,17 @@ export function CommandPalette() {
                 setOpen(false);
             } else if (e.key === "ArrowDown") {
                 e.preventDefault();
-                setSelectedIndex((i) => Math.min(i + 1, flatItems.length - 1));
+                setSelectedIndex((i) => Math.min(i + 1, flatItemsRef.current.length - 1));
             } else if (e.key === "ArrowUp") {
                 e.preventDefault();
                 setSelectedIndex((i) => Math.max(i - 1, 0));
             } else if (e.key === "Enter") {
                 e.preventDefault();
-                const item = flatItems[selectedIndex];
+                const item = flatItemsRef.current[selectedIndexRef.current];
                 if (item) navigate(item.href);
             }
         },
-        [flatItems, navigate, selectedIndex]
+        [navigate]
     );
 
     if (!open) return null;
@@ -154,8 +166,8 @@ export function CommandPalette() {
                                             onClick={() => navigate(item.href)}
                                             onMouseEnter={() => setSelectedIndex(idx)}
                                             className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${isSelected
-                                                    ? "bg-[var(--accent-bg)] text-[color:var(--accent)]"
-                                                    : "text-[color:var(--fg)] hover:bg-[var(--hover)]"
+                                                ? "bg-[var(--accent-bg)] text-[color:var(--accent)]"
+                                                : "text-[color:var(--fg)] hover:bg-[var(--hover)]"
                                                 }`}
                                         >
                                             <span className="text-base w-6 text-center flex-shrink-0">{item.icon}</span>

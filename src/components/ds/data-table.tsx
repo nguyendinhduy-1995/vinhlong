@@ -47,16 +47,18 @@ export function DataTable<T>({
     const py = density === "compact" ? "py-1.5" : "py-2.5";
     const px = "px-4";
 
+    const skeletonWidths = [75, 60, 85, 68, 72];
+
     if (loading) {
         return (
             <div className={`glass-2 overflow-hidden animate-pulse ${className}`} style={{ borderRadius: 'var(--radius-lg)' }}>
-                {Array.from({ length: 5 }).map((_, i) => (
+                {skeletonWidths.map((w, i) => (
                     <div
                         key={i}
                         className="flex items-center gap-3 px-4 py-3"
                         style={{ borderBottom: '0.5px solid var(--border-hairline)' }}
                     >
-                        <div className="h-4 flex-1 rounded" style={{ background: 'var(--bg-inset)', maxWidth: `${60 + Math.random() * 30}%` }} />
+                        <div className="h-4 flex-1 rounded" style={{ background: 'var(--bg-inset)', maxWidth: `${w}%` }} />
                         <div className="h-4 w-16 rounded" style={{ background: 'var(--bg-inset)' }} />
                     </div>
                 ))}

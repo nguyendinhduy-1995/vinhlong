@@ -2,12 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ADMIN_MENU, type AdminMenuItem } from "@/lib/admin-menu";
+import { ADMIN_MENU, filterMenuByRole, type AdminMenuItem } from "@/lib/admin-menu";
 import { hasUiPermission, moduleKeyFromHref } from "@/lib/ui-permissions";
 
 type DesktopSidebarMenuProps = {
   permissions: string[] | undefined;
   isAdmin: boolean;
+  userRole?: string;
   items?: AdminMenuItem[];
 };
 
@@ -17,7 +18,7 @@ function normalizeVi(input: string) {
 
 const DEFAULT_GROUPS = ["Tổng quan", "Khách & Tư vấn", "Học viên & Lịch", "Tài chính", "Tự động hoá", "Quản trị"] as const;
 
-export function DesktopSidebarMenu({ permissions, isAdmin, items = ADMIN_MENU }: DesktopSidebarMenuProps) {
+export function DesktopSidebarMenu({ permissions, isAdmin, userRole, items = ADMIN_MENU }: DesktopSidebarMenuProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -25,12 +26,15 @@ export function DesktopSidebarMenu({ permissions, isAdmin, items = ADMIN_MENU }:
   const [openGroups, setOpenGroups] = useState<string[]>([...DEFAULT_GROUPS]);
 
   const visibleItems = useMemo(() => {
-    return items.filter((item) => {
+    // Step 1: filter by role (v2 role-based menu)
+    const roleFiltered = userRole ? filterMenuByRole(items, userRole) : items;
+    // Step 2: filter by permission
+    return roleFiltered.filter((item) => {
       const moduleKey = moduleKeyFromHref(item.href);
       if (!moduleKey) return isAdmin;
       return hasUiPermission(permissions, moduleKey, "VIEW");
     });
-  }, [isAdmin, items, permissions]);
+  }, [isAdmin, items, permissions, userRole]);
 
   const normalizedQuery = normalizeVi(query);
   const filtered = useMemo(() => {

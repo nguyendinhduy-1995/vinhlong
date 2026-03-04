@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, AuthError } from "@/lib/auth";
+import { requireMappedRoutePermissionAuth } from "@/lib/route-auth";
 
 /* ═══════════════════════════════════════════════════════════════
    GET /api/dashboard/summary
@@ -59,8 +59,10 @@ function ratio(num: number, den: number) {
 }
 
 export async function GET(req: NextRequest) {
+    const authResult = await requireMappedRoutePermissionAuth(req);
+    if (authResult.error) return authResult.error;
+
     try {
-        requireAuth(req);
 
         const url = new URL(req.url);
         const dateParam = url.searchParams.get("date") || new Date().toISOString().slice(0, 10);
@@ -384,9 +386,6 @@ export async function GET(req: NextRequest) {
             aiInsights,
         });
     } catch (error) {
-        if (error instanceof AuthError) {
-            return NextResponse.json({ error: error.message }, { status: error.status });
-        }
         console.error("[dashboard/summary]", error);
         return NextResponse.json(
             { error: "Internal server error" },

@@ -47,6 +47,25 @@ type KpiDailyResult = {
   };
 };
 
+/** V2: Page staff KPI counts (central page operator) */
+export type PageKpiCounts = {
+  messagesToday: number;
+  qualifiedToday: number;
+  hasPhoneToday: number;
+  assignedToday: number;
+  invalidToday: number;
+  slaAvgMinutes: number;
+};
+
+/** V2: Branch staff KPI counts (branch operator) */
+export type BranchKpiCounts = {
+  calledToday: number;
+  appointedToday: number;
+  arrivedToday: number;
+  signedToday: number;
+  lostToday: number;
+};
+
 type ScopedLead = {
   id: string;
   ownerId: string | null;
@@ -273,7 +292,7 @@ async function countHasPhoneConversions(
   return picked.size;
 }
 
-export async function getKpiDaily(date: string, auth: AuthPayload): Promise<KpiDailyResult> {
+export async function getKpiDaily(date: string, auth: AuthPayload): Promise<KpiDailyResult & { pageKpi: PageKpiCounts; branchKpi: BranchKpiCounts }> {
   const { start: dayStart, end: dayEnd } = dayRangeInHoChiMinh(date);
   const { start: monthStart, end: monthEnd, lastDay, monthKey } = monthRangeInHoChiMinh(date);
   const day = Number(date.split("-")[2]);
@@ -307,6 +326,89 @@ export async function getKpiDaily(date: string, auth: AuthPayload): Promise<KpiD
       countDistinctEventByLead(allLeadIds, "SIGNED", monthStart, monthEndApplied),
     ]);
 
+  // ── V2: Page KPI counts ──
+  const [messagesToday, assignedToday, lostToday] = await Promise.all([
+    // Count NEW lead events in date range (messages received today)
+    prisma.leadEvent.count({
+      where: {
+        type: "NEW",
+        createdAt: { gte: dayStart, lte: dayEnd },
+        ...(allLeadIds.length > 0 ? { leadId: { in: allLeadIds } } : {}),
+      },
+    }),
+    // Count ASSIGNED_OWNER events
+    prisma.leadEvent.count({
+      where: {
+        type: "ASSIGNED_OWNER",
+        createdAt: { gte: dayStart, lte: dayEnd },
+        ...(allLeadIds.length > 0 ? { leadId: { in: allLeadIds } } : {}),
+      },
+    }),
+    // Count LOST events
+    prisma.leadEvent.count({
+      where: {
+        type: "LOST",
+        createdAt: { gte: dayStart, lte: dayEnd },
+        ...(allLeadIds.length > 0 ? { leadId: { in: allLeadIds } } : {}),
+      },
+    }),
+  ]);
+
+  // ── V2: SLA calculation (avg minutes from NEW to ASSIGNED_OWNER) ──
+  let slaAvgMinutes = 0;
+  if (assignedToday > 0) {
+    const assignEvents = await prisma.leadEvent.findMany({
+      where: {
+        type: "ASSIGNED_OWNER",
+        createdAt: { gte: dayStart, lte: dayEnd },
+        ...(allLeadIds.length > 0 ? { leadId: { in: allLeadIds } } : {}),
+      },
+      select: { leadId: true, createdAt: true },
+    });
+    const assignedLeadIds = assignEvents.map((e) => e.leadId);
+    if (assignedLeadIds.length > 0) {
+      const newEvents = await prisma.leadEvent.findMany({
+        where: {
+          type: "NEW",
+          leadId: { in: assignedLeadIds },
+        },
+        select: { leadId: true, createdAt: true },
+        orderBy: { createdAt: "asc" },
+      });
+      const newMap = new Map<string, Date>();
+      for (const ne of newEvents) {
+        if (!newMap.has(ne.leadId)) newMap.set(ne.leadId, ne.createdAt);
+      }
+      let totalMinutes = 0;
+      let pairCount = 0;
+      for (const ae of assignEvents) {
+        const newAt = newMap.get(ae.leadId);
+        if (newAt) {
+          totalMinutes += (ae.createdAt.getTime() - newAt.getTime()) / 60000;
+          pairCount++;
+        }
+      }
+      if (pairCount > 0) slaAvgMinutes = Math.round(totalMinutes / pairCount);
+    }
+  }
+
+  const pageKpi: PageKpiCounts = {
+    messagesToday,
+    qualifiedToday: hasPhoneDaily,
+    hasPhoneToday: hasPhoneDaily,
+    assignedToday,
+    invalidToday: 0, // TODO: count from payload.invalid flag
+    slaAvgMinutes,
+  };
+
+  const branchKpi: BranchKpiCounts = {
+    calledToday: calledDaily,
+    appointedToday: appointedDaily,
+    arrivedToday: arrivedDaily,
+    signedToday: signedDaily,
+    lostToday,
+  };
+
   return {
     date,
     monthKey,
@@ -336,5 +438,7 @@ export async function getKpiDaily(date: string, auth: AuthPayload): Promise<KpiD
         monthly: toPercent(signedMonthly, arrivedMonthly),
       },
     },
+    pageKpi,
+    branchKpi,
   };
 }

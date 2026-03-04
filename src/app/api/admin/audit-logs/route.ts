@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jsonError } from "@/lib/api-response";
-import { requireRouteAuth } from "@/lib/route-auth";
+import { requireMappedRoutePermissionAuth } from "@/lib/route-auth";
 import { requireAdminRole } from "@/lib/admin-auth";
 
 /**
@@ -17,9 +17,9 @@ import { requireAdminRole } from "@/lib/admin-auth";
  *   pageSize — items per page (default 50, max 100)
  */
 export async function GET(req: Request) {
-    const { error, auth } = requireRouteAuth(req);
-    if (error) return error;
-    const forbidden = requireAdminRole(auth.role);
+    const authResult = await requireMappedRoutePermissionAuth(req);
+    if (authResult.error) return authResult.error;
+    const forbidden = requireAdminRole(authResult.auth.role);
     if (forbidden) return forbidden;
 
     try {

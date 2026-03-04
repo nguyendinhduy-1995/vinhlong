@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jsonError } from "@/lib/api-response";
-import { requireRouteAuth } from "@/lib/route-auth";
+import { requireMappedRoutePermissionAuth } from "@/lib/route-auth";
 import { requireAdminRole } from "@/lib/admin-auth";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(req: Request, ctx: Ctx) {
-    const { error, auth } = requireRouteAuth(req);
-    if (error) return error;
-    const forbidden = requireAdminRole(auth.role);
+    const authResult = await requireMappedRoutePermissionAuth(req);
+    if (authResult.error) return authResult.error;
+    const forbidden = requireAdminRole(authResult.auth.role);
     if (forbidden) return forbidden;
 
     try {
@@ -23,9 +23,9 @@ export async function GET(req: Request, ctx: Ctx) {
 }
 
 export async function PUT(req: Request, ctx: Ctx) {
-    const { error, auth } = requireRouteAuth(req);
-    if (error) return error;
-    const forbidden = requireAdminRole(auth.role);
+    const authResult = await requireMappedRoutePermissionAuth(req);
+    if (authResult.error) return authResult.error;
+    const forbidden = requireAdminRole(authResult.auth.role);
     if (forbidden) return forbidden;
 
     try {
@@ -50,7 +50,7 @@ export async function PUT(req: Request, ctx: Ctx) {
             data.estimatedExamAt = body.estimatedExamAt ? new Date(body.estimatedExamAt) : null;
         }
         if (typeof body.note === "string") data.note = body.note.trim() || null;
-        data.updatedByUserId = auth.sub;
+        data.updatedByUserId = authResult.auth.sub;
 
         const plan = await prisma.studentExamPlan.upsert({
             where: { studentId },

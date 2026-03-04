@@ -27,6 +27,11 @@ export const PUBLIC_API_ROUTES: Array<{ method?: string; pattern: RegExp }> = [
   // Student chatbot (public, handles own optional auth)
   { method: "POST", pattern: /^\/api\/student\/chatbot$/ },
   { method: "POST", pattern: /^\/api\/public\/chatbot$/ },
+  // Student theory progress (public, uses student auth internally)
+  { method: "POST", pattern: /^\/api\/student\/me\/theory-progress$/ },
+  // Docs + SSE events (handled internally)
+  { method: "GET", pattern: /^\/api\/docs$/ },
+  { method: "GET", pattern: /^\/api\/events$/ },
 ];
 
 export const SECRET_AUTH_ROUTES: Array<{ method?: string; pattern: RegExp }> = [
@@ -44,6 +49,8 @@ export const SECRET_AUTH_ROUTES: Array<{ method?: string; pattern: RegExp }> = [
   { method: "POST", pattern: /^\/api\/student-progress\/attempt$/ },
   { method: "POST", pattern: /^\/api\/student-progress\/ai-summary$/ },
   { method: "POST", pattern: /^\/api\/student-progress\/events$/ },
+  // Webhook lead ingest (uses secret/API key)
+  { method: "POST", pattern: /^\/api\/webhooks\/lead-ingest$/ },
 ];
 
 export const ROUTE_PERMISSION_RULES: RoutePermissionRule[] = [
@@ -226,6 +233,38 @@ export const ROUTE_PERMISSION_RULES: RoutePermissionRule[] = [
   { method: "POST", pattern: /^\/api\/analytics\/email-report$/, module: "overview", action: "VIEW" },
   { method: "GET", pattern: /^\/api\/admin\/meta\/logs$/, module: "overview", action: "VIEW" },
   { method: "POST", pattern: /^\/api\/admin\/meta\/test$/, module: "overview", action: "VIEW" },
+
+  // Dashboard + audit + QA
+  { method: "GET", pattern: /^\/api\/dashboard\/summary$/, module: "overview", action: "VIEW" },
+  { method: "GET", pattern: /^\/api\/admin\/audit-logs$/, module: "admin_users", action: "VIEW" },
+  { method: "GET", pattern: /^\/api\/admin\/qa\/e2e-results$/, module: "overview", action: "VIEW" },
+
+  // Instructors
+  { method: "GET", pattern: /^\/api\/instructors$/, module: "admin_instructors", action: "VIEW" },
+  { method: "POST", pattern: /^\/api\/instructors$/, module: "admin_instructors", action: "CREATE" },
+  { method: "GET", pattern: /^\/api\/instructors\/[^/]+$/, module: "admin_instructors", action: "VIEW" },
+  { method: "PATCH", pattern: /^\/api\/instructors\/[^/]+$/, module: "admin_instructors", action: "UPDATE" },
+  { method: "DELETE", pattern: /^\/api\/instructors\/[^/]+$/, module: "admin_instructors", action: "DELETE" },
+  { method: "POST", pattern: /^\/api\/instructors\/[^/]+\/assign$/, module: "admin_instructors", action: "UPDATE" },
+  { method: "GET", pattern: /^\/api\/instructors\/[^/]+\/students$/, module: "admin_instructors", action: "VIEW" },
+
+  // Practical lessons
+  { method: "GET", pattern: /^\/api\/practical-lessons$/, module: "schedule", action: "VIEW" },
+  { method: "POST", pattern: /^\/api\/practical-lessons$/, module: "schedule", action: "CREATE" },
+  { method: "PATCH", pattern: /^\/api\/practical-lessons\/[^/]+$/, module: "schedule", action: "UPDATE" },
+  { method: "DELETE", pattern: /^\/api\/practical-lessons\/[^/]+$/, module: "schedule", action: "DELETE" },
+
+  // Notifications push subscribe
+  { method: "POST", pattern: /^\/api\/notifications\/push\/subscribe$/, module: "notifications", action: "CREATE" },
+  { method: "DELETE", pattern: /^\/api\/notifications\/push\/subscribe$/, module: "notifications", action: "DELETE" },
+
+  // Reports KPI export
+  { method: "GET", pattern: /^\/api\/reports\/kpi\/export$/, module: "kpi_daily", action: "EXPORT" },
+
+  // Students extra endpoints
+  { method: "POST", pattern: /^\/api\/students\/[^/]+\/change-instructor$/, module: "students", action: "UPDATE" },
+  { method: "GET", pattern: /^\/api\/students\/[^/]+\/exam-plan$/, module: "students", action: "VIEW" },
+  { method: "PUT", pattern: /^\/api\/students\/[^/]+\/exam-plan$/, module: "students", action: "UPDATE" },
 ];
 
 function matchesAllowlist(

@@ -19,7 +19,7 @@ export async function GET(req: Request) {
 
     // Read last run results from Playwright JSON report
     let lastRun: string | null = null;
-    let summary = { total: 0, passed: 0, failed: 0, skipped: 0 };
+    const summary = { total: 0, passed: 0, failed: 0, skipped: 0 };
     const testCases: { name: string; status: string; duration: number; file: string }[] = [];
 
     // Try to read Playwright's JSON results

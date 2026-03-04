@@ -54,18 +54,17 @@ function applyTheme(resolved: ResolvedTheme) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-    const [theme, setThemeState] = useState<Theme>("auto");
-    const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
-
-    // Initialize from localStorage
-    useEffect(() => {
+    const [theme, setThemeState] = useState<Theme>(() => {
+        if (typeof window === "undefined") return "auto";
         const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-        const t = stored && ["auto", "light", "dark"].includes(stored) ? stored : "auto";
-        setThemeState(t);
-        const r = resolve(t);
-        setResolvedTheme(r);
-        applyTheme(r);
-    }, []);
+        return stored && ["auto", "light", "dark"].includes(stored) ? stored : "auto";
+    });
+    const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() => resolve(theme));
+
+    // Apply theme on first render
+    useEffect(() => {
+        applyTheme(resolvedTheme);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Re-check auto mode every minute
     useEffect(() => {

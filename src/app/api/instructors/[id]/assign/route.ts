@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jsonError } from "@/lib/api-response";
-import { requireRouteAuth } from "@/lib/route-auth";
+import { requireMappedRoutePermissionAuth } from "@/lib/route-auth";
 import { requireAdminRole } from "@/lib/admin-auth";
 import { logInstructorChange } from "@/lib/instructor-events";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function POST(req: Request, ctx: Ctx) {
-    const { error, auth } = requireRouteAuth(req);
-    if (error) return error;
-    const forbidden = requireAdminRole(auth.role);
+    const authResult = await requireMappedRoutePermissionAuth(req);
+    if (authResult.error) return authResult.error;
+    const forbidden = requireAdminRole(authResult.auth.role);
     if (forbidden) return forbidden;
 
     try {
@@ -34,7 +34,7 @@ export async function POST(req: Request, ctx: Ctx) {
         await prisma.$transaction(async (tx) => {
             await tx.student.update({ where: { id: studentId }, data: { instructorId } });
             await logInstructorChange(
-                { leadId: student.leadId, fromInstructorId: oldInstructorId, toInstructorId: instructorId, reason, createdById: auth.sub },
+                { leadId: student.leadId, fromInstructorId: oldInstructorId, toInstructorId: instructorId, reason, createdById: authResult.auth.sub },
                 tx,
             );
         });

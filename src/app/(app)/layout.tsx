@@ -172,7 +172,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             Bỏ qua điều hướng
           </a>
           <div className="flex min-h-screen">
-            <DesktopSidebarMenu permissions={user?.permissions} isAdmin={Boolean(user && isAdminRole(user.role))} />
+            <DesktopSidebarMenu permissions={user?.permissions} isAdmin={Boolean(user && isAdminRole(user.role))} userRole={user?.role} />
 
             <div className="min-w-0 flex-1">
               {!usePageMobileShell ? (

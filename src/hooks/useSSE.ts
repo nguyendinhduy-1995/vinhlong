@@ -32,6 +32,7 @@ export function useSSE(): UseSSEReturn {
     const [eventCount, setEventCount] = useState(0);
     const lastEventIdRef = useRef<string>("");
     const retryCountRef = useRef(0);
+    const connectRef = useRef<() => EventSource | undefined>(() => undefined);
     const MAX_RETRIES = 10;
 
     const connect = useCallback(() => {
@@ -83,11 +84,15 @@ export function useSSE(): UseSSEReturn {
             retryCountRef.current++;
             const delay = Math.min(1000 * Math.pow(2, retryCountRef.current), 30000);
             console.log(`[useSSE] Reconnecting in ${delay}ms (attempt ${retryCountRef.current})`);
-            setTimeout(connect, delay);
+            setTimeout(() => connectRef.current(), delay);
         };
 
         return es;
     }, []);
+
+    useEffect(() => {
+        connectRef.current = connect;
+    });
 
     useEffect(() => {
         const es = connect();
