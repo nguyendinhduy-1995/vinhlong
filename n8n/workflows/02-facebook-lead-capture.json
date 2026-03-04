@@ -1,0 +1,307 @@
+{
+    "name": "[CRM] 02 Pancake Lead Capture",
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "minutes",
+                            "minutesInterval": 5
+                        }
+                    ]
+                }
+            },
+            "id": "w02-trigger",
+            "name": "TRG_Cron_5min",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "GET",
+                "url": "=https://pages.fm/api/public_api/v2/pages/{{ $env.PANCAKE_PAGE_ID }}/conversations",
+                "sendQuery": true,
+                "queryParameters": {
+                    "parameters": [
+                        {
+                            "name": "page_access_token",
+                            "value": "={{ $env.PANCAKE_PAGE_ACCESS_TOKEN }}"
+                        }
+                    ]
+                },
+                "options": {
+                    "timeout": 30000
+                }
+            },
+            "id": "w02-pancake-get",
+            "name": "HTTP_GetPancakeConversations",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4,
+            "position": [
+                480,
+                300
+            ],
+            "retryOnFail": true,
+            "maxTries": 2,
+            "waitBetweenTries": 5000
+        },
+        {
+            "parameters": {
+                "jsCode": "// Extract leads with phone numbers from Pancake conversations\nconst data = $input.all()[0].json;\nconst conversations = data.conversations || [];\nconst leads = [];\n\nfor (const conv of conversations) {\n  // Only process conversations that have phone numbers\n  if (!conv.has_phone || !conv.recent_phone_numbers || conv.recent_phone_numbers.length === 0) {\n    continue;\n  }\n\n  // Extract customer info\n  const customer = conv.page_customer || {};\n  const from = conv.from || {};\n  const name = (customer.name || from.name || '').trim();\n\n  // Extract and normalize phone number\n  let phone = (conv.recent_phone_numbers[0].phone_number || '').trim();\n  phone = phone.replace(/\\s+/g, '').replace(/^\\+84/, '0');\n\n  // Validate phone\n  const isValid = /^0\\d{8,10}$/.test(phone);\n  if (!isValid || !name) continue;\n\n  // Extract additional info\n  const gender = customer.gender || null;\n  const fbId = from.id || customer.psid || '';\n  const conversationId = conv.id || '';\n  const messageCount = conv.message_count || 0;\n  const fromAds = (conv.ad_ids && conv.ad_ids.length > 0);\n  const insertedAt = conv.inserted_at || '';\n  const updatedAt = conv.updated_at || '';\n\n  leads.push({\n    fullName: name,\n    phone: phone,\n    province: '',\n    licenseType: 'B2',\n    source: 'pancake',\n    channel: fromAds ? 'fb_ads_inbox' : 'facebook_inbox',\n    gender: gender,\n    pancakeFbId: fbId,\n    pancakeConversationId: conversationId,\n    messageCount: messageCount,\n    conversationInsertedAt: insertedAt,\n    conversationUpdatedAt: updatedAt\n  });\n}\n\n// Return leads as individual items for downstream processing\nif (leads.length === 0) {\n  return [{ json: { _noLeads: true, message: 'No new leads with phone numbers found' } }];\n}\n\nreturn leads.map(l => ({ json: l }));\n"
+            },
+            "id": "w02-extract",
+            "name": "CODE_ExtractLeads",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                710,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "boolean": [
+                        {
+                            "value1": "={{ $json._noLeads !== true }}",
+                            "value2": true
+                        }
+                    ]
+                }
+            },
+            "id": "w02-has-leads",
+            "name": "IF_HasLeads",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 1,
+            "position": [
+                940,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "={{ $env.CRM_BASE_URL }}/api/public/lead",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify({ fullName: $json.fullName, phone: $json.phone, province: $json.province, licenseType: $json.licenseType }) }}",
+                "options": {
+                    "timeout": 15000,
+                    "batching": {
+                        "batch": {
+                            "batchSize": 1,
+                            "batchInterval": 1000
+                        }
+                    }
+                }
+            },
+            "id": "w02-create",
+            "name": "HTTP_CreateLead",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4,
+            "position": [
+                1170,
+                200
+            ],
+            "retryOnFail": true,
+            "maxTries": 3,
+            "waitBetweenTries": 2000,
+            "onError": "continueRegularOutput"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "boolean": [
+                        {
+                            "value1": "={{ $json.ok }}",
+                            "value2": true
+                        }
+                    ]
+                }
+            },
+            "id": "w02-lead-ok",
+            "name": "IF_LeadOk",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 1,
+            "position": [
+                1400,
+                200
+            ]
+        },
+        {
+            "parameters": {
+                "workflowId": "rM8NCtXchLsIhLxG"
+            },
+            "id": "w02-auth",
+            "name": "AUTH_GetToken",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "typeVersion": 1,
+            "position": [
+                1630,
+                100
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "={{ $env.CRM_BASE_URL }}/api/leads/auto-assign",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "name": "Authorization",
+                            "value": "=Bearer {{ $json.bearerToken }}"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "{\"strategy\":\"round_robin\",\"filters\":{\"status\":\"HAS_PHONE\"}}",
+                "options": {
+                    "timeout": 15000
+                }
+            },
+            "id": "w02-assign",
+            "name": "HTTP_AutoAssign",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4,
+            "position": [
+                1860,
+                100
+            ],
+            "onError": "continueRegularOutput"
+        },
+        {
+            "parameters": {
+                "workflowId": "naX5gYVTYw9cz3dA"
+            },
+            "id": "w02-alert",
+            "name": "ALERT_Admin",
+            "type": "n8n-nodes-base.executeWorkflow",
+            "typeVersion": 1,
+            "position": [
+                1630,
+                350
+            ]
+        }
+    ],
+    "connections": {
+        "TRG_Cron_5min": {
+            "main": [
+                [
+                    {
+                        "node": "HTTP_GetPancakeConversations",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "HTTP_GetPancakeConversations": {
+            "main": [
+                [
+                    {
+                        "node": "CODE_ExtractLeads",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "CODE_ExtractLeads": {
+            "main": [
+                [
+                    {
+                        "node": "IF_HasLeads",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "IF_HasLeads": {
+            "main": [
+                [
+                    {
+                        "node": "HTTP_CreateLead",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                []
+            ]
+        },
+        "HTTP_CreateLead": {
+            "main": [
+                [
+                    {
+                        "node": "IF_LeadOk",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "IF_LeadOk": {
+            "main": [
+                [
+                    {
+                        "node": "AUTH_GetToken",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "ALERT_Admin",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "AUTH_GetToken": {
+            "main": [
+                [
+                    {
+                        "node": "HTTP_AutoAssign",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "tags": [
+        {
+            "name": "CRM"
+        },
+        {
+            "name": "cron"
+        },
+        {
+            "name": "pancake"
+        }
+    ]
+}

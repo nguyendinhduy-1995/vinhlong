@@ -1,0 +1,222 @@
+import { NextResponse } from "next/server";
+import type { Prisma, ReceiptMethod } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+import { jsonError } from "@/lib/api-response";
+import { API_ERROR_VI } from "@/lib/api-error-vi";
+import { requirePermissionRouteAuth } from "@/lib/route-auth";
+import { applyScopeToWhere, resolveScope, resolveWriteBranchId } from "@/lib/scope";
+import { KpiDateError, resolveKpiDateParam } from "@/lib/services/kpi-daily";
+import { requireIdempotencyKey, withIdempotency } from "@/lib/idempotency";
+
+type ReceiptInputMethod = "cash" | "bank" | "momo" | "other" | "bank_transfer" | "card";
+
+function parsePositiveInt(value: string | null, fallback: number, max = 100) {
+  if (value === null) return fallback;
+  const n = Number(value);
+  if (!Number.isInteger(n) || n <= 0) throw new Error("INVALID_PAGINATION");
+  return Math.min(n, max);
+}
+
+function dayRangeInHoChiMinh(dateStr: string) {
+  const start = new Date(`${dateStr}T00:00:00.000+07:00`);
+  const end = new Date(`${dateStr}T23:59:59.999+07:00`);
+  return { start, end };
+}
+
+function parseReceiptMethod(value: unknown): ReceiptMethod | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== "string") throw new Error("INVALID_METHOD");
+  const method = value as ReceiptInputMethod;
+
+  if (method === "cash") return "cash";
+  if (method === "bank" || method === "bank_transfer") return "bank_transfer";
+  if (method === "card") return "card";
+  if (method === "momo" || method === "other") return "other";
+
+  throw new Error("INVALID_METHOD");
+}
+
+function parseAmount(value: unknown) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0 || !Number.isInteger(value)) {
+    throw new Error("INVALID_AMOUNT");
+  }
+  return value;
+}
+
+function parseReceivedAt(value: unknown) {
+  if (value === undefined) return undefined;
+  if (typeof value !== "string") throw new Error("INVALID_DATE");
+  const date = resolveKpiDateParam(value);
+  return dayRangeInHoChiMinh(date).start;
+}
+
+export async function POST(req: Request) {
+  const authResult = await requirePermissionRouteAuth(req, { module: "receipts", action: "CREATE" });
+  if (authResult.error) return authResult.error;
+
+  try {
+    const scope = await resolveScope(authResult.auth);
+    const idempotency = requireIdempotencyKey(req);
+    if (idempotency.error) return idempotency.error;
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return jsonError(400, "VALIDATION_ERROR", API_ERROR_VI.required);
+    }
+    if (!body.studentId || typeof body.studentId !== "string") {
+      return jsonError(400, "VALIDATION_ERROR", API_ERROR_VI.required);
+    }
+
+    const student = await prisma.student.findUnique({
+      where: { id: body.studentId },
+      select: {
+        id: true,
+        branchId: true,
+        lead: { select: { ownerId: true, branchId: true, owner: { select: { branchId: true } } } },
+      },
+    });
+    if (!student) return jsonError(404, "NOT_FOUND", API_ERROR_VI.notFoundStudent);
+    const scopedStudent = await prisma.student.findFirst({
+      where: applyScopeToWhere({ id: body.studentId }, scope, "student"),
+      select: { id: true },
+    });
+    if (!scopedStudent) {
+      return jsonError(403, "AUTH_FORBIDDEN", API_ERROR_VI.forbidden);
+    }
+
+    const amount = parseAmount(body.amount);
+    const method = parseReceiptMethod(body.method) ?? "cash";
+    const receivedAt = parseReceivedAt(body.receivedAt);
+
+    const resolvedBranchId = await resolveWriteBranchId(authResult.auth, [
+      student.branchId,
+      student.lead.branchId,
+      student.lead.owner?.branchId,
+    ]);
+    const route = new URL(req.url).pathname;
+    return (
+      await withIdempotency({
+        key: idempotency.key!,
+        route,
+        actorType: "user",
+        actorId: authResult.auth.sub,
+        requestBody: body,
+        execute: async () => {
+          const receipt = await prisma.receipt.create({
+            data: {
+              studentId: body.studentId,
+              branchId: resolvedBranchId,
+              amount,
+              method,
+              note: typeof body.note === "string" ? body.note : null,
+              ...(receivedAt ? { receivedAt } : {}),
+              createdById: authResult.auth.sub,
+            },
+          });
+          return { statusCode: 200, responseJson: { receipt } };
+        },
+      })
+    ).response;
+  } catch (error) {
+    if (error instanceof KpiDateError) {
+      return jsonError(400, "VALIDATION_ERROR", error.message);
+    }
+    if (
+      error instanceof Error &&
+      (error.message === "INVALID_AMOUNT" || error.message === "INVALID_METHOD" || error.message === "INVALID_DATE")
+    ) {
+      return jsonError(400, "VALIDATION_ERROR", API_ERROR_VI.required);
+    }
+    return jsonError(500, "INTERNAL_ERROR", API_ERROR_VI.internal);
+  }
+}
+
+export async function GET(req: Request) {
+  const authResult = await requirePermissionRouteAuth(req, { module: "receipts", action: "VIEW" });
+  if (authResult.error) return authResult.error;
+
+  try {
+    const scope = await resolveScope(authResult.auth);
+    const { searchParams } = new URL(req.url);
+    const studentId = searchParams.get("studentId");
+    const method = searchParams.get("method");
+    const q = searchParams.get("q");
+    const date = searchParams.get("date");
+    const from = searchParams.get("from");
+    const to = searchParams.get("to");
+    const page = parsePositiveInt(searchParams.get("page"), 1);
+    const pageSize = parsePositiveInt(searchParams.get("pageSize"), 20);
+
+    if (date && (from || to)) {
+      return jsonError(400, "VALIDATION_ERROR", API_ERROR_VI.required);
+    }
+
+    let receivedAt: Prisma.DateTimeFilter | undefined;
+    if (date) {
+      const resolved = resolveKpiDateParam(date);
+      const range = dayRangeInHoChiMinh(resolved);
+      receivedAt = { gte: range.start, lte: range.end };
+    } else if (from || to) {
+      receivedAt = {};
+      if (from) {
+        const resolvedFrom = resolveKpiDateParam(from);
+        receivedAt.gte = dayRangeInHoChiMinh(resolvedFrom).start;
+      }
+      if (to) {
+        const resolvedTo = resolveKpiDateParam(to);
+        receivedAt.lte = dayRangeInHoChiMinh(resolvedTo).end;
+      }
+    }
+
+    const whereBase: Prisma.ReceiptWhereInput = {
+      ...(studentId ? { studentId } : {}),
+      ...(method ? { method: parseReceiptMethod(method) } : {}),
+      ...(receivedAt ? { receivedAt } : {}),
+      ...(q
+        ? {
+          student: {
+            lead: {
+              OR: [{ fullName: { contains: q, mode: "insensitive" } }, { phone: { contains: q, mode: "insensitive" } }],
+            },
+          },
+        }
+        : {}),
+    };
+    const where = applyScopeToWhere(whereBase, scope, "receipt");
+
+    const [items, total] = await Promise.all([
+      prisma.receipt.findMany({
+        where,
+        include: {
+          student: {
+            include: {
+              lead: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  phone: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { receivedAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.receipt.count({ where }),
+    ]);
+
+    return NextResponse.json({ items, page, pageSize, total });
+  } catch (error) {
+    if (error instanceof KpiDateError) {
+      return jsonError(400, "VALIDATION_ERROR", error.message);
+    }
+    if (
+      error instanceof Error &&
+      (error.message === "INVALID_PAGINATION" || error.message === "INVALID_METHOD")
+    ) {
+      return jsonError(400, "VALIDATION_ERROR", API_ERROR_VI.required);
+    }
+    return jsonError(500, "INTERNAL_ERROR", API_ERROR_VI.internal);
+  }
+}

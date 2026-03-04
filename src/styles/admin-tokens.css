@@ -1,0 +1,192 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Admin Design System — Tokens (macOS 26 Heavy Glass / Acrylic)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Light Theme (default) ── */
+:root,
+[data-theme="light"] {
+    /* ─ Primitives ─ */
+    --color-white: #ffffff;
+    --color-black: #000000;
+
+    /* ─ Background ─ */
+    --bg: #f2f2f7;
+    --bg-elevated: #ffffff;
+    --bg-inset: #e5e5ea;
+
+    /* ─ Foreground / Text ─ */
+    --fg: #1c1c1e;
+    --fg-secondary: #3a3a3c;
+    --fg-tertiary: #636366;
+    --fg-muted: #8e8e93;
+    --fg-faint: #aeaeb2;
+
+    /* ─ Accent / Semantic ─ */
+    --accent: #007aff;
+    --accent-hover: #0066d6;
+    --accent-bg: rgba(0, 122, 255, 0.08);
+    --danger: #ff3b30;
+    --danger-bg: rgba(255, 59, 48, 0.08);
+    --warning: #ff9500;
+    --warning-bg: rgba(255, 149, 0, 0.08);
+    --success: #34c759;
+    --success-bg: rgba(52, 199, 89, 0.08);
+    --success-fg: #248a3d;
+    --info: #5ac8fa;
+    --info-bg: rgba(90, 200, 250, 0.08);
+    --danger-fg: #d70015;
+    --warning-fg: #c93400;
+
+    /* ─ Hover ─ */
+    --hover: rgba(0, 0, 0, 0.03);
+    --hover-active: rgba(0, 0, 0, 0.06);
+
+    /* ─ Glass Surfaces (4 levels) ─ */
+    --glass-1-bg: rgba(255, 255, 255, 0.45);
+    --glass-1-blur: 16px;
+    --glass-2-bg: rgba(255, 255, 255, 0.60);
+    --glass-2-blur: 20px;
+    --glass-3-bg: rgba(255, 255, 255, 0.72);
+    --glass-3-blur: 24px;
+    --glass-4-bg: rgba(255, 255, 255, 0.82);
+    --glass-4-blur: 28px;
+
+    /* ─ Borders ─ */
+    --border-hairline: rgba(0, 0, 0, 0.06);
+    --border-subtle: rgba(0, 0, 0, 0.10);
+    --border-medium: rgba(0, 0, 0, 0.15);
+    --border-focus: rgba(0, 122, 255, 0.40);
+
+    /* ─ Shadows (multi-layer, soft) ─ */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.10), 0 4px 16px rgba(0, 0, 0, 0.06);
+
+    /* ─ Radius ─ */
+    --radius-xs: 6px;
+    --radius-sm: 8px;
+    --radius: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-2xl: 24px;
+    --radius-full: 9999px;
+
+    /* ─ Spacing (4px base) ─ */
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 12px;
+    --sp-4: 16px;
+    --sp-5: 20px;
+    --sp-6: 24px;
+    --sp-8: 32px;
+    --sp-10: 40px;
+    --sp-12: 48px;
+
+    /* ─ Typography ─ */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+
+    --text-2xs: 0.625rem;
+    /* 10px */
+    --text-xs: 0.6875rem;
+    /* 11px */
+    --text-sm: 0.8125rem;
+    /* 13px */
+    --text-base: 0.9375rem;
+    /* 15px */
+    --text-lg: 1.0625rem;
+    /* 17px */
+    --text-xl: 1.25rem;
+    /* 20px */
+    --text-2xl: 1.5rem;
+    /* 24px */
+    --text-3xl: 1.875rem;
+    /* 30px */
+
+    --leading-tight: 1.25;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.625;
+
+    --tracking-tight: -0.02em;
+    --tracking-normal: 0;
+    --tracking-wide: 0.04em;
+
+    /* ─ Motion ─ */
+    --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --duration-fast: 120ms;
+    --duration-normal: 200ms;
+    --duration-slow: 320ms;
+
+    /* ─ Z-index ─ */
+    --z-base: 1;
+    --z-sticky: 10;
+    --z-sidebar: 20;
+    --z-topbar: 30;
+    --z-drawer: 40;
+    --z-modal: 50;
+    --z-toast: 60;
+    --z-tooltip: 70;
+
+    /* ─ Layout ─ */
+    --sidebar-width: 240px;
+    --sidebar-collapsed: 64px;
+    --topbar-height: 52px;
+    --content-max: 1200px;
+}
+
+/* ── Dark Theme ── */
+[data-theme="dark"] {
+    /* ─ Background ─ */
+    --bg: #1c1c1e;
+    --bg-elevated: #2c2c2e;
+    --bg-inset: #141416;
+
+    /* ─ Foreground / Text ─ */
+    --fg: #f5f5f7;
+    --fg-secondary: #d1d1d6;
+    --fg-tertiary: #a1a1a6;
+    --fg-muted: #8e8e93;
+    --fg-faint: #636366;
+
+    /* ─ Accent / Semantic ─ */
+    --accent: #0a84ff;
+    --accent-hover: #409cff;
+    --accent-bg: rgba(10, 132, 255, 0.12);
+    --danger: #ff453a;
+    --danger-bg: rgba(255, 69, 58, 0.12);
+    --warning: #ff9f0a;
+    --warning-bg: rgba(255, 159, 10, 0.12);
+    --success: #30d158;
+    --success-bg: rgba(48, 209, 88, 0.12);
+    --success-fg: #30d158;
+    --info: #64d2ff;
+    --info-bg: rgba(100, 210, 255, 0.12);
+    --danger-fg: #ff6961;
+    --warning-fg: #ffb340;
+
+    /* ─ Hover ─ */
+    --hover: rgba(255, 255, 255, 0.05);
+    --hover-active: rgba(255, 255, 255, 0.10);
+
+    /* ─ Glass Surfaces ─ */
+    --glass-1-bg: rgba(44, 44, 46, 0.50);
+    --glass-2-bg: rgba(44, 44, 46, 0.65);
+    --glass-3-bg: rgba(44, 44, 46, 0.78);
+    --glass-4-bg: rgba(44, 44, 46, 0.88);
+
+    /* ─ Borders ─ */
+    --border-hairline: rgba(255, 255, 255, 0.08);
+    --border-subtle: rgba(255, 255, 255, 0.12);
+    --border-medium: rgba(255, 255, 255, 0.18);
+    --border-focus: rgba(10, 132, 255, 0.50);
+
+    /* ─ Shadows ─ */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.20);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.15);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25), 0 1px 4px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.30), 0 2px 8px rgba(0, 0, 0, 0.20);
+    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.35), 0 4px 16px rgba(0, 0, 0, 0.25);
+}

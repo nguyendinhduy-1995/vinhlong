@@ -1,0 +1,1464 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+}
+
+
+enum Role {
+  admin
+  manager
+  telesales
+  direct_page
+  viewer
+}
+
+enum LeadStatus {
+  NEW
+  HAS_PHONE
+  APPOINTED
+  ARRIVED
+  SIGNED
+  STUDYING
+  EXAMED
+  RESULT
+  LOST
+}
+
+enum LeadEventType {
+  NEW
+  HAS_PHONE
+  APPOINTED
+  ARRIVED
+  SIGNED
+  STUDYING
+  EXAMED
+  RESULT
+  LOST
+  CALLED
+  OWNER_CHANGED
+  ASSIGNED_OWNER
+  INSTRUCTOR_CHANGED
+  OTHER
+}
+
+enum CallOutcome {
+  no_answer
+  interested
+  not_interested
+  wrong_number
+  call_back
+}
+
+enum AppointmentOutcome {
+  confirmed
+  rescheduled
+  cancelled
+  no_show
+}
+
+enum ArrivalOutcome {
+  arrived_ok
+  arrived_waiting
+  arrived_refused
+}
+
+enum ExamResult {
+  pass
+  fail
+}
+
+enum StudyStatus {
+  studying
+  paused
+  done
+}
+
+enum ReceiptMethod {
+  cash
+  bank_transfer
+  card
+  other
+}
+
+enum MessageDirection {
+  inbound
+  outbound
+}
+
+enum ScheduleType {
+  study
+  exam
+  reminder
+}
+
+enum ScheduleSource {
+  AUTO
+  MANUAL
+}
+
+enum ScheduleManualStatus {
+  PLANNED
+  DONE
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+enum StudentContentCategory {
+  HUONG_DAN
+  MEO_HOC
+  HO_SO
+  THI
+}
+
+enum AutomationStatus {
+  sent
+  failed
+  skipped
+}
+
+enum NotificationScope {
+  FINANCE
+  FOLLOWUP
+  SCHEDULE
+  SYSTEM
+}
+
+enum NotificationStatus {
+  NEW
+  DOING
+  DONE
+  SKIPPED
+}
+
+enum NotificationPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum OutboundChannel {
+  ZALO
+  FB
+  SMS
+  CALL_NOTE
+}
+
+enum OutboundStatus {
+  QUEUED
+  SENT
+  FAILED
+  SKIPPED
+}
+
+enum OutboundPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum OpsPulseRole {
+  PAGE
+  TELESALES
+}
+
+enum EmployeeKpiRole {
+  PAGE
+  TELESALES
+  BRANCH
+}
+
+enum InstructorStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum LessonType {
+  SA_HINH
+  DUONG_TRUONG
+  DAT
+  CABIN
+  OTHER
+}
+
+enum LessonStatus {
+  SCHEDULED
+  DONE
+  CANCELED
+  NO_SHOW
+}
+
+enum HrAttendanceStatus {
+  PRESENT
+  HALF
+  OFF
+  LEAVE_PAID
+  LEAVE_UNPAID
+  LATE
+  ABSENT
+}
+
+enum HrAttendanceSource {
+  MANUAL
+  IMPORT
+  DEVICE
+}
+
+enum CommissionSourceType {
+  RECEIPT
+  LEAD
+  STUDENT
+  MANUAL_ADJUST
+  PAID50
+}
+
+enum PayrollStatus {
+  DRAFT
+  FINAL
+  PAID
+}
+
+enum PermissionModule {
+  overview
+  leads
+  leads_board
+  kpi_daily
+  kpi_targets
+  goals
+  ai_kpi_coach
+  ai_suggestions
+  students
+  courses
+  schedule
+  receipts
+  notifications
+  outbound_jobs
+  messaging
+  my_payroll
+  ops_ai_hr
+  ops_n8n
+  automation_logs
+  automation_run
+  marketing_meta_ads
+  admin_branches
+  admin_users
+  admin_segments
+  admin_tuition
+  admin_notification_admin
+  admin_automation_admin
+  admin_send_progress
+  admin_plans
+  admin_student_content
+  admin_instructors
+  hr_kpi
+  hr_payroll_profiles
+  hr_attendance
+  hr_total_payroll
+  api_hub
+  expenses
+  salary
+  insights
+  admin_tracking
+}
+
+enum PermissionAction {
+  VIEW
+  CREATE
+  UPDATE
+  FEEDBACK
+  EDIT
+  DELETE
+  EXPORT
+  ASSIGN
+  RUN
+  INGEST
+}
+
+enum GoalPeriodType {
+  DAILY
+  MONTHLY
+}
+
+enum OutboundJobStatus {
+  NEW
+  DISPATCHED
+  DONE
+  FAILED
+}
+
+enum AiSuggestionStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum AiScoreColor {
+  RED
+  YELLOW
+  GREEN
+}
+
+enum AiSuggestionFeedbackType {
+  HELPFUL
+  NOT_HELPFUL
+  DONE
+}
+
+enum TrackingCodePlacement {
+  HEAD
+  BODY_TOP
+  BODY_BOTTOM
+}
+
+enum TrackingSite {
+  GLOBAL
+  LANDING
+  CRM
+  STUDENT
+  TAPLAI
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  email     String   @unique
+  name      String?
+  password  String
+  role      Role     @default(viewer)
+  isActive  Boolean  @default(true)
+  branchId  String?
+  groupId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branch    Branch?   @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  permissionGroup PermissionGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  leads     Lead[]    @relation("OwnerLeads")
+  receipts  Receipt[] @relation("ReceiptCreatedBy")
+  events    LeadEvent[] @relation("EventCreatedBy")
+  notifications Notification[] @relation("OwnerNotifications")
+  attendanceSessions AttendanceSession[] @relation("AttendanceSessionCreatedBy")
+  attendanceRecords AttendanceRecord[] @relation("AttendanceRecordUpdatedBy")
+  attendanceAudits AttendanceAudit[] @relation("AttendanceAuditActor")
+  salaryProfiles SalaryProfile[]
+  attendances Attendance[]
+  commissionLedgers CommissionLedger[]
+  payrollItems PayrollItem[]
+  generatedPayrollRuns PayrollRun[] @relation("PayrollGeneratedBy")
+  opsPulses OpsPulse[]
+  employeeKpiSettings EmployeeKpiSetting[]
+  permissionOverrides UserPermissionOverride[]
+  branchBaseSalaries BranchBaseSalary[]
+  expenseDailyCreated BranchExpenseDaily[]
+  goalSettingsCreated GoalSetting[]
+  aiSuggestionsOwned AiSuggestion[]
+  aiSuggestionFeedbacks AiSuggestionFeedback[]
+  aiLearningHistories AiLearningHistory[]
+  kpiTargetsOwned KpiTarget[]
+  outboundJobsOwned OutboundJob[] @relation("OutboundJobOwner")
+  outboundJobsCreated OutboundJob[] @relation("OutboundJobCreatedBy")
+  pushSubscriptions PushSubscription[]
+
+  @@index([branchId])
+  @@index([groupId])
+}
+
+model PermissionGroup {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  rules       PermissionRule[]
+  users       User[]
+}
+
+model PermissionRule {
+  id        String           @id @default(cuid())
+  groupId   String
+  module    PermissionModule
+  action    PermissionAction
+  allowed   Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  group     PermissionGroup  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, module, action])
+  @@index([groupId, module])
+}
+
+model UserPermissionOverride {
+  id        String           @id @default(cuid())
+  userId    String
+  module    PermissionModule
+  action    PermissionAction
+  allowed   Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, module, action])
+  @@index([userId, module])
+}
+
+model Lead {
+  id          String     @id @default(cuid())
+  fullName    String?
+  phone       String?    @unique
+  province    String?
+  licenseType String?
+  source      String?
+  channel     String?
+  status      LeadStatus @default(NEW)
+
+  branchId    String
+  ownerId     String?
+  owner       User?      @relation("OwnerLeads", fields: [ownerId], references: [id])
+  branch      Branch     @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+  callOutcome    CallOutcome?
+  apptOutcome    AppointmentOutcome?
+  arrivalOutcome ArrivalOutcome?
+
+  note         String?
+  tags         String[]   @default([])
+  lastContactAt DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  messages      LeadMessage[]
+  outboundMessages OutboundMessage[]
+  events        LeadEvent[]
+  student       Student?
+  automationLogs AutomationLog[]
+  notifications Notification[]
+
+  @@index([ownerId, createdAt])
+  @@index([branchId, createdAt])
+}
+
+model LeadMessage {
+  id        String           @id @default(cuid())
+  leadId    String
+  channel   String
+  direction MessageDirection
+  content   String
+  externalMessageId String?
+  createdAt DateTime         @default(now())
+
+  lead      Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, createdAt])
+}
+
+model LeadEvent {
+  id        String   @id @default(cuid())
+  leadId    String
+  type      LeadEventType
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  createdById String?
+  createdBy   User?  @relation("EventCreatedBy", fields: [createdById], references: [id])
+
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, createdAt])
+  @@index([type, createdAt])
+}
+
+model TuitionPlan {
+  id          String   @id @default(cuid())
+  province    String
+  licenseType String
+  tuition     Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  students    Student[]
+
+  @@unique([province, licenseType])
+  @@index([province, licenseType])
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  province    String?
+  licenseType String?
+  startDate   DateTime?
+  examDate    DateTime?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  students    Student[]
+  scheduleItems CourseScheduleItem[]
+  notifications Notification[]
+}
+
+model CourseScheduleItem {
+  id        String       @id @default(cuid())
+  courseId  String
+  branchId  String
+  type      ScheduleType
+  title     String
+  startAt   DateTime
+  endAt     DateTime?
+  source    ScheduleSource       @default(AUTO)
+  status    ScheduleManualStatus @default(PLANNED)
+  location  String?
+  note      String?
+  rule      Json?
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  course    Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  branch    Branch       @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  attendanceSession AttendanceSession?
+  attendanceRecords AttendanceRecord[]
+  attendanceAudits AttendanceAudit[]
+
+  @@index([courseId, startAt])
+  @@index([branchId, startAt])
+}
+
+model Student {
+  id              String       @id @default(cuid())
+  leadId          String       @unique
+  courseId        String?
+  branchId        String
+
+  tuitionPlanId   String?
+  tuitionPlan     TuitionPlan? @relation(fields: [tuitionPlanId], references: [id])
+
+  tuitionSnapshot Int?
+  signedAt        DateTime?
+  arrivedAt       DateTime?
+  instructorId    String?
+
+  studyStatus     StudyStatus  @default(studying)
+  examDate        DateTime?
+  examStatus      String?
+  examResult      ExamResult?
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  lead            Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  course          Course?      @relation(fields: [courseId], references: [id])
+  branch          Branch       @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  instructor      Instructor?  @relation(fields: [instructorId], references: [id], onDelete: SetNull)
+
+  receipts        Receipt[]
+  commissionLedgers CommissionLedger[]
+  outboundMessages OutboundMessage[]
+  automationLogs  AutomationLog[]
+  notifications   Notification[]
+  attendanceRecords AttendanceRecord[]
+  account         StudentAccount?
+  practicalLessons PracticalLesson[]
+  examPlan        StudentExamPlan?
+  appDailySnapshots AppDailySnapshot[]
+  appAttempts       AppAttemptSummary[]
+  appAiSummary      AppAiSummary?
+  appEvents         AppEventLog[]
+
+  @@index([courseId])
+  @@index([branchId])
+  @@index([instructorId])
+}
+
+model StudentAccount {
+  id           String   @id @default(cuid())
+  phone        String   @unique
+  passwordHash String
+  studentId    String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model StudentContent {
+  id          String                 @id @default(cuid())
+  category    StudentContentCategory
+  title       String
+  body        String
+  isPublished Boolean                @default(false)
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  @@index([category, isPublished, createdAt])
+}
+
+model AttendanceSession {
+  id            String   @id @default(cuid())
+  scheduleItemId String  @unique
+  note          String?
+  createdById   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  scheduleItem  CourseScheduleItem @relation(fields: [scheduleItemId], references: [id], onDelete: Cascade)
+  createdBy     User?   @relation("AttendanceSessionCreatedBy", fields: [createdById], references: [id])
+  records       AttendanceRecord[]
+}
+
+model AttendanceRecord {
+  id            String           @id @default(cuid())
+  sessionId     String
+  scheduleItemId String
+  studentId     String
+  status        AttendanceStatus
+  note          String?
+  updatedById   String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  session       AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  scheduleItem  CourseScheduleItem @relation(fields: [scheduleItemId], references: [id], onDelete: Cascade)
+  student       Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  updatedBy     User?              @relation("AttendanceRecordUpdatedBy", fields: [updatedById], references: [id])
+
+  @@unique([studentId, scheduleItemId])
+  @@index([scheduleItemId, createdAt])
+}
+
+model AttendanceAudit {
+  id            String   @id @default(cuid())
+  scheduleItemId String
+  actorId       String?
+  action        String
+  diff          Json?
+  createdAt     DateTime @default(now())
+
+  scheduleItem  CourseScheduleItem @relation(fields: [scheduleItemId], references: [id], onDelete: Cascade)
+  actor         User?   @relation("AttendanceAuditActor", fields: [actorId], references: [id])
+
+  @@index([scheduleItemId, createdAt])
+}
+
+model Receipt {
+  id          String        @id @default(cuid())
+  studentId   String
+  branchId    String
+  amount      Int
+  method      ReceiptMethod @default(cash)
+  note        String?
+  receivedAt  DateTime      @default(now())
+  createdAt   DateTime      @default(now())
+
+  createdById String?
+  createdBy   User?         @relation("ReceiptCreatedBy", fields: [createdById], references: [id])
+
+  student     Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  branch      Branch        @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+  @@index([studentId, receivedAt])
+  @@index([branchId, receivedAt])
+}
+
+model AutomationLog {
+  id          String           @id @default(cuid())
+  leadId      String?
+  studentId   String?
+  branchId    String
+  channel     String
+  templateKey String?
+  milestone   String?
+  status      AutomationStatus @default(sent)
+  sentAt      DateTime         @default(now())
+  payload     Json?
+
+  lead        Lead?            @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  student     Student?         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  branch      Branch           @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+  @@index([leadId, sentAt])
+  @@index([studentId, sentAt])
+  @@index([branchId, sentAt])
+  @@index([branchId, milestone, sentAt])
+}
+
+model Notification {
+  id        String               @id @default(cuid())
+  scope     NotificationScope
+  status    NotificationStatus   @default(NEW)
+  priority  NotificationPriority @default(MEDIUM)
+  title     String
+  message   String
+  payload   Json?
+  leadId    String?
+  studentId String?
+  courseId  String?
+  ownerId   String?
+  dueAt     DateTime?
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  lead      Lead?                @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  student   Student?             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course    Course?              @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  owner     User?                @relation("OwnerNotifications", fields: [ownerId], references: [id], onDelete: SetNull)
+  outboundMessages OutboundMessage[]
+  outboundJobs OutboundJob[]
+
+  @@index([scope, status, dueAt])
+  @@index([ownerId, createdAt])
+  @@index([studentId, scope, status])
+}
+
+model NotificationRule {
+  id        String            @id @default(cuid())
+  scope     NotificationScope
+  name      String            @unique
+  isActive  Boolean           @default(true)
+  config    Json
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+model MessageTemplate {
+  id        String          @id @default(cuid())
+  key       String          @unique
+  title     String
+  channel   OutboundChannel
+  body      String
+  isActive  Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model OutboundMessage {
+  id             String          @id @default(cuid())
+  channel        OutboundChannel
+  to             String?
+  templateKey    String
+  renderedText   String
+  status         OutboundStatus  @default(QUEUED)
+  priority       OutboundPriority @default(MEDIUM)
+  error          String?
+  leadId         String?
+  studentId      String?
+  notificationId String?
+  branchId       String
+  retryCount     Int             @default(0)
+  nextAttemptAt  DateTime?
+  providerMessageId String?
+  leaseId        String?
+  leaseExpiresAt DateTime?
+  dispatchedAt   DateTime?
+  createdAt      DateTime        @default(now())
+  sentAt         DateTime?
+
+  lead           Lead?           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  student        Student?        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  notification   Notification?   @relation(fields: [notificationId], references: [id], onDelete: SetNull)
+  branch         Branch          @relation(fields: [branchId], references: [id], onDelete: Restrict)
+
+  @@index([status, nextAttemptAt])
+  @@index([status, createdAt])
+  @@index([leaseExpiresAt])
+  @@index([studentId, createdAt])
+  @@index([leadId, createdAt])
+  @@index([branchId, createdAt])
+}
+
+model OutboundJob {
+  id             String            @id @default(cuid())
+  title          String
+  status         OutboundJobStatus @default(NEW)
+  runId          String?
+  lastError      String?
+  idempotencyKey String?
+  dispatchedAt   DateTime?
+  doneAt         DateTime?
+  metaJson       Json?
+  payloadJson    Json?
+  suggestionId   String?
+  taskId         String?
+  branchId       String
+  ownerId        String?
+  createdById    String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @default(now()) @updatedAt
+
+  suggestion     AiSuggestion?     @relation(fields: [suggestionId], references: [id], onDelete: SetNull)
+  task           Notification?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  branch         Branch            @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  owner          User?             @relation("OutboundJobOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  createdBy      User?             @relation("OutboundJobCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([branchId, status, createdAt])
+  @@index([ownerId, status, createdAt])
+  @@index([suggestionId, createdAt])
+  @@index([taskId, createdAt])
+  @@index([runId])
+  @@unique([idempotencyKey])
+}
+
+model Branch {
+  id        String   @id @default(cuid())
+  name      String
+  code      String?  @unique
+  isActive  Boolean  @default(true)
+  commissionPerPaid50 Int?
+  provinces String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+  leads     Lead[]
+  students  Student[]
+  receipts  Receipt[]
+  scheduleItems CourseScheduleItem[]
+  automationLogs AutomationLog[]
+  outboundMessages OutboundMessage[]
+  salaryProfiles SalaryProfile[]
+  attendances Attendance[]
+  commissionLedgers CommissionLedger[]
+  payrollRuns PayrollRun[]
+  marketingReports MarketingReport[]
+  opsPulses OpsPulse[]
+  expenseCategories ExpenseCategory[]
+  expensesDaily BranchExpenseDaily[]
+  baseSalaries BranchBaseSalary[]
+  expenseInsights ExpenseInsight[]
+  kpiTargets KpiTarget[]
+  goalSettings GoalSetting[]
+  aiSuggestions AiSuggestion[]
+  outboundJobs OutboundJob[]
+}
+
+model FeatureSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  enabled   Boolean  @default(false)
+  config    Json?
+  updatedAt DateTime @updatedAt
+}
+
+model KpiTarget {
+  id          String   @id @default(cuid())
+  branchId    String
+  role        Role
+  ownerId     String?
+  metricKey   String
+  targetValue Int
+  dayOfWeek   Int      @default(-1)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  branch      Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  owner       User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+
+  @@unique([branchId, role, metricKey, dayOfWeek, ownerId])
+  @@index([branchId, role, isActive])
+  @@index([ownerId])
+}
+
+model GoalSetting {
+  id            String         @id @default(cuid())
+  branchId      String?
+  branchScopeKey String        @default("")
+  periodType    GoalPeriodType
+  dateKey       String         @default("")
+  monthKey      String         @default("")
+  revenueTarget Int            @default(0)
+  dossierTarget Int            @default(0)
+  costTarget    Int            @default(0)
+  note          String?
+  createdById   String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  branch        Branch?        @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  createdBy     User           @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@unique([branchScopeKey, periodType, dateKey, monthKey])
+  @@index([branchId, periodType, dateKey])
+  @@index([branchId, periodType, monthKey])
+}
+
+model AiSuggestion {
+  id           String            @id @default(cuid())
+  dateKey      String
+  role         Role
+  branchId     String?
+  ownerId      String?
+  status       AiSuggestionStatus @default(ACTIVE)
+  title        String
+  content      String
+  scoreColor   AiScoreColor
+  actionsJson  Json?
+  metricsJson  Json?
+  source       String
+  runId        String?
+  payloadHash  String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  branch       Branch?           @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  owner        User?             @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  feedbacks    AiSuggestionFeedback[]
+  outboundJobs OutboundJob[]
+
+  @@index([dateKey, role, branchId, ownerId])
+  @@index([runId])
+}
+
+model AiSuggestionFeedback {
+  id           String       @id @default(cuid())
+  suggestionId String
+  userId       String
+  feedbackType AiSuggestionFeedbackType @default(HELPFUL)
+  reason       String       @default("")
+  reasonDetail String?
+  actualResult Json?
+  rating       Int
+  applied      Boolean      @default(false)
+  note         String?
+  createdAt    DateTime     @default(now())
+
+  suggestion   AiSuggestion @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([suggestionId, userId])
+  @@index([suggestionId, feedbackType, createdAt])
+  @@index([userId, createdAt])
+}
+
+model AiLearningHistory {
+  id            String   @id @default(cuid())
+  moduleKey     String
+  useCaseKey    String
+  actorId       String?
+  source        String?
+  runId         String?
+  inputJson     Json?
+  outputJson    Json?
+  feedbackScore Int?
+  applied       Boolean?
+  note          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  actor         User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([moduleKey, createdAt])
+  @@index([useCaseKey, createdAt])
+  @@index([actorId, createdAt])
+  @@index([runId])
+}
+
+model ExpenseCategory {
+  id        String   @id @default(cuid())
+  branchId  String
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  dailyExpenses BranchExpenseDaily[]
+
+  @@unique([branchId, name])
+  @@index([branchId, isActive])
+}
+
+model BranchExpenseDaily {
+  id         String   @id @default(cuid())
+  branchId   String
+  date       DateTime
+  dateKey    String
+  categoryId String
+  amountVnd  Int
+  note       String?
+  createdById String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  branch     Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  category   ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdBy  User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([branchId, dateKey, categoryId])
+  @@index([branchId, dateKey])
+  @@index([categoryId])
+}
+
+model BranchBaseSalary {
+  id            String   @id @default(cuid())
+  branchId      String
+  userId        String
+  monthKey      String
+  baseSalaryVnd Int
+  note          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  branch        Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, monthKey, branchId])
+  @@index([branchId, monthKey])
+  @@index([monthKey])
+}
+
+model ExpenseInsight {
+  id         String   @id @default(cuid())
+  branchId   String?
+  dateKey    String
+  monthKey   String
+  summary    String
+  payloadJson Json?
+  source     String   @default("manual")
+  runId      String?
+  payloadHash String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  branch     Branch?  @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  @@index([branchId, dateKey])
+  @@index([monthKey])
+  @@index([runId])
+}
+
+model IdempotencyRequest {
+  id           String   @id @default(cuid())
+  key          String
+  route        String
+  actorType    String
+  actorId      String
+  requestHash  String
+  responseJson Json
+  statusCode   Int
+  createdAt    DateTime @default(now())
+
+  @@unique([key, route, actorType, actorId])
+  @@index([createdAt])
+}
+
+model CommissionScheme {
+  id        String   @id @default(cuid())
+  name      String
+  role      String?
+  rulesJson Json
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  salaryProfiles SalaryProfile[]
+}
+
+model SalaryProfile {
+  id                 String   @id @default(cuid())
+  userId             String
+  branchId           String
+  roleTitle          String
+  baseSalaryVnd      Int
+  allowanceVnd       Int      @default(0)
+  standardDays       Int
+  commissionSchemeId String?
+  effectiveFrom      DateTime
+  effectiveTo        DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch             Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  commissionScheme   CommissionScheme? @relation(fields: [commissionSchemeId], references: [id], onDelete: SetNull)
+
+  @@index([userId, effectiveFrom])
+  @@index([branchId, effectiveFrom])
+}
+
+model Attendance {
+  id          String           @id @default(cuid())
+  userId      String
+  branchId    String
+  date        DateTime
+  status      HrAttendanceStatus
+  minutesLate Int?
+  note        String?
+  source      HrAttendanceSource @default(MANUAL)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch      Branch           @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([branchId, date])
+}
+
+model CommissionLedger {
+  id            String               @id @default(cuid())
+  userId        String
+  branchId      String
+  periodMonth   String
+  sourceType    CommissionSourceType
+  sourceId      String?
+  studentId     String?
+  amountBaseVnd Int
+  commissionVnd Int
+  note          String?
+  metaJson      Json?
+  createdAt     DateTime             @default(now())
+
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch        Branch               @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  student       Student?             @relation(fields: [studentId], references: [id], onDelete: SetNull)
+
+  @@index([periodMonth, userId])
+  @@index([branchId, periodMonth])
+  @@unique([sourceType, studentId])
+}
+
+model PayrollRun {
+  id            String        @id @default(cuid())
+  month         String
+  branchId      String
+  status        PayrollStatus @default(DRAFT)
+  generatedAt   DateTime?
+  generatedById String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  branch        Branch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  generatedBy   User?         @relation("PayrollGeneratedBy", fields: [generatedById], references: [id], onDelete: SetNull)
+  items         PayrollItem[]
+
+  @@unique([month, branchId])
+}
+
+model PayrollItem {
+  id              String   @id @default(cuid())
+  payrollRunId    String
+  userId          String
+  baseSalaryVnd   Int
+  allowanceVnd    Int
+  daysWorked      Float
+  standardDays    Int
+  baseProratedVnd Int
+  commissionVnd   Int
+  penaltyVnd      Int
+  bonusVnd        Int
+  totalVnd        Int
+  breakdownJson   Json
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  payrollRun      PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([payrollRunId, userId])
+}
+
+model MarketingReport {
+  id        String   @id @default(cuid())
+  date      DateTime
+  dateKey   String
+  branchId  String?
+  source    String
+  spendVnd  Int
+  messages  Int
+  cplVnd    Int
+  metaJson  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branch    Branch?  @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  @@unique([dateKey, branchId, source])
+  @@index([dateKey])
+  @@index([branchId, dateKey])
+}
+
+model OpsPulse {
+  id            String       @id @default(cuid())
+  createdAt     DateTime     @default(now())
+  role          OpsPulseRole
+  ownerId       String?
+  ownerScopeKey String       @default("")
+  branchId      String?
+  branchScopeKey String      @default("")
+  dateKey       String
+  windowMinutes Int          @default(10)
+  bucketStart   DateTime
+  payloadJson   Json
+  computedJson  Json
+
+  owner         User?        @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  branch        Branch?      @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  @@index([role, dateKey, createdAt])
+  @@index([ownerId, createdAt])
+  @@unique([role, dateKey, windowMinutes, bucketStart, ownerScopeKey, branchScopeKey])
+}
+
+model EmployeeKpiSetting {
+  id            String          @id @default(cuid())
+  userId        String
+  role          EmployeeKpiRole
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  targetsJson   Json
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, role, effectiveFrom])
+  @@index([role, isActive])
+}
+
+model Instructor {
+  id        String           @id @default(cuid())
+  name      String
+  phone     String?          @unique
+  status    InstructorStatus @default(ACTIVE)
+  note      String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  students         Student[]
+  practicalLessons PracticalLesson[]
+
+  @@index([status, createdAt])
+}
+
+model PracticalLesson {
+  id           String       @id @default(cuid())
+  studentId    String
+  instructorId String
+  startAt      DateTime
+  endAt        DateTime?
+  location     String?
+  lessonType   LessonType
+  status       LessonStatus @default(SCHEDULED)
+  note         String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  student    Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  instructor Instructor @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+
+  @@index([instructorId, startAt])
+  @@index([studentId, startAt])
+}
+
+model StudentExamPlan {
+  id                     String    @id @default(cuid())
+  studentId              String    @unique
+  estimatedGraduationAt  DateTime?
+  estimatedExamAt        DateTime?
+  note                   String?
+  updatedByUserId        String?
+  updatedAt              DateTime  @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+}
+
+model TrackingCode {
+  id          String                @id @default(cuid())
+  site        TrackingSite          @default(GLOBAL)
+  key         String
+  name        String
+  placement   TrackingCodePlacement
+  code        String
+  isEnabled   Boolean               @default(true)
+  updatedById String?
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  @@unique([site, key])
+  @@index([site, placement, isEnabled])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ── App Learning Progress (pushed from PWA app) ──
+
+model AppDailySnapshot {
+  id                String   @id @default(cuid())
+  studentId         String
+  dateKey           String   // "2026-02-19" Asia/Ho_Chi_Minh
+  minutes           Int      @default(0)
+  questionsAnswered Int      @default(0)
+  correct           Int      @default(0)
+  accuracy          Int      @default(0)
+  streakCurrent     Int      @default(0)
+  streakLongest     Int      @default(0)
+  dueCount          Int      @default(0)
+  topWeakTopics     Json?    // [{topicId, accuracy}]
+  lastActiveAt      DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  student           Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, dateKey])
+  @@index([studentId, dateKey])
+}
+
+model AppAttemptSummary {
+  id             String   @id @default(cuid())
+  studentId      String
+  attemptId      String   @unique
+  mode           String   // "MOCK", "DAILY"
+  startedAt      DateTime
+  finishedAt     DateTime
+  score          Int
+  total          Int
+  accuracy       Int
+  topicBreakdown Json?    // [{topicId, total, correct, accuracy}]
+  createdAt      DateTime @default(now())
+
+  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, createdAt])
+}
+
+model AppAiSummary {
+  id              String   @id @default(cuid())
+  studentId       String   @unique
+  passProbability Int
+  strengths       Json     // string[]
+  weaknesses      Json     // string[]
+  todayPlan       Json     // string[]
+  generatedAt     DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model AppEventLog {
+  id         String   @id @default(cuid())
+  eventId    String   @unique // client-generated ULID for idempotency
+  studentId  String
+  type       String   // "DAILY_COMPLETED", "MOCK_FINISHED", etc.
+  occurredAt DateTime
+  payload    Json?
+  createdAt  DateTime @default(now())
+
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, occurredAt])
+}
+
+// ── Site Analytics (client-side tracker events) ──
+
+model SiteAnalyticsEvent {
+  id          String   @id @default(cuid())
+  site        String   // "mophong" | "taplai" | "landing"
+  sessionId   String   // generated client-side per session
+  eventType   String   // "page_view" | "click" | "scroll" | "video_play" | "exam_start" | "session_end"
+  page        String   // e.g. "/", "/practice", "/exam"
+  referrer    String?
+  userAgent   String?
+  screenWidth Int?
+  duration    Int?     // seconds on page (sent on unload/visibility change)
+  payload     Json?    // extra data: { buttonId, scrollDepth, videoId, ... }
+  ip          String?
+  country     String?
+  region      String?  // province/city for VN, region for others
+  createdAt   DateTime @default(now())
+
+  @@index([site, createdAt])
+  @@index([sessionId])
+  @@index([eventType, createdAt])
+}
+
+model MetaCapiLog {
+  id         String   @id @default(cuid())
+  eventName  String
+  eventId    String
+  ok         Boolean
+  fbtraceId  String?
+  errorMsg   String?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model AnalyticsAiInsight {
+  id        String   @id @default(cuid())
+  date      String   // "2026-02-22"
+  type      String   // "daily_report" | "anomaly" | "weekly_summary"
+  site      String?  // "mophong" | "taplai" | "landing" | null (all)
+  title     String   // short headline
+  content   String   @db.Text // markdown AI analysis
+  metrics   Json?    // snapshot of key metrics
+  severity  String?  // "info" | "warning" | "critical"
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([date])
+  @@index([type, createdAt])
+}
+
+model AnalyticsGoal {
+  id        String   @id @default(cuid())
+  name      String   // "Daily Traffic", "Weekly Conversions"
+  metric    String   // "page_views" | "sessions" | "conversions" | "exam_starts" | "form_submits"
+  target    Int      // target value
+  period    String   // "daily" | "weekly" | "monthly"
+  site      String?  // "mophong" | "taplai" | "landing" | null (all)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active])
+}
+
+// ── Audit Trail ──
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String   // "CREATE" | "UPDATE" | "DELETE" | "LOGIN" | "EXPORT" | "ASSIGN"
+  entity     String   // "lead" | "receipt" | "student" | "schedule" | "instructor" | "user"
+  entityId   String?  // ID of the affected record
+  userId     String?  // who performed the action
+  userEmail  String?  // cached for display
+  summary    String?  // human-readable Vietnamese description
+  before     Json?    // snapshot before change (for UPDATEs)
+  after      Json?    // snapshot after change
+  ip         String?  // request IP
+  createdAt  DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([userId, createdAt])
+  @@index([createdAt])
+}

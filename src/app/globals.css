@@ -1,0 +1,726 @@
+@import "tailwindcss";
+@import "../styles/admin-tokens.css";
+
+/* ═══════════════════════════════════════════════════════════════
+   ADMIN DESIGN SYSTEM — macOS 26 Heavy Glass / Acrylic
+   ═══════════════════════════════════════════════════════════════ */
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+/* ── Base ──────────────────────────────────────────────────────── */
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  font-feature-settings: 'ss01' on, 'cv01' on;
+  letter-spacing: var(--tracking-tight);
+}
+
+/* ── Scrollbar (minimal + dark‑aware) ── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--border-medium);
+}
+
+/* ── Focus Ring (visible, consistent) ── */
+*:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GLASS SURFACES — 4 depth levels (macOS 26 Acrylic)
+   ─────────────────────────────────────────────────────────────
+   Each level has: translucent bg + blur + hairline border + shadow + noise grain
+   ═══════════════════════════════════════════════════════════════ */
+
+.glass-1 {
+  background: var(--glass-1-bg);
+  backdrop-filter: saturate(180%) blur(var(--glass-1-blur));
+  -webkit-backdrop-filter: saturate(180%) blur(var(--glass-1-blur));
+  border: 0.5px solid var(--border-hairline);
+  box-shadow: var(--shadow-xs);
+  position: relative;
+}
+
+.glass-2 {
+  background: var(--glass-2-bg);
+  backdrop-filter: saturate(180%) blur(var(--glass-2-blur));
+  -webkit-backdrop-filter: saturate(180%) blur(var(--glass-2-blur));
+  border: 0.5px solid var(--border-hairline);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+
+.glass-3 {
+  background: var(--glass-3-bg);
+  backdrop-filter: saturate(180%) blur(var(--glass-3-blur));
+  -webkit-backdrop-filter: saturate(180%) blur(var(--glass-3-blur));
+  border: 0.5px solid var(--border-subtle);
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+.glass-4 {
+  background: var(--glass-4-bg);
+  backdrop-filter: saturate(180%) blur(var(--glass-4-blur));
+  -webkit-backdrop-filter: saturate(180%) blur(var(--glass-4-blur));
+  border: 0.5px solid var(--border-subtle);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+
+/* Noise grain overlay (applied via ::after on glass surfaces) */
+.glass-1::after,
+.glass-2::after,
+.glass-3::after,
+.glass-4::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: url('/noise.svg') repeat;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+  mix-blend-mode: overlay;
+}
+
+/* Ensure glass children render above noise */
+.glass-1>*,
+.glass-2>*,
+.glass-3>*,
+.glass-4>* {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Glass accent variant (highlighted cards) ── */
+.glass-accent {
+  background: var(--accent-bg);
+  backdrop-filter: saturate(180%) blur(var(--glass-2-blur));
+  -webkit-backdrop-filter: saturate(180%) blur(var(--glass-2-blur));
+  border: 0.5px solid var(--border-focus);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Solid surface (opaque, for nested content inside glass) ── */
+.surface {
+  background: var(--bg-elevated);
+  border: 0.5px solid var(--border-hairline);
+  box-shadow: var(--shadow-xs);
+}
+
+.surface-inset {
+  background: var(--bg-inset);
+  border: 0.5px solid var(--border-hairline);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BACKWARD COMPAT — Old class aliases (will be removed in Phase 4)
+   ═══════════════════════════════════════════════════════════════ */
+
+.v5-glass,
+.ios26-glass,
+.ios-glass {
+  background: var(--glass-2-bg);
+  backdrop-filter: saturate(180%) blur(var(--glass-2-blur));
+  -webkit-backdrop-filter: saturate(180%) blur(var(--glass-2-blur));
+  border: 0.5px solid var(--border-hairline);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+
+.v5-glass-heavy,
+.ios26-glass-tinted {
+  background: var(--glass-3-bg);
+  backdrop-filter: saturate(180%) blur(var(--glass-3-blur));
+  -webkit-backdrop-filter: saturate(180%) blur(var(--glass-3-blur));
+  border: 0.5px solid var(--border-subtle);
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+.v5-card,
+.ios26-card,
+.v2-card,
+.v3-glass,
+.v3-glass-strong,
+.v4-card {
+  background: var(--glass-2-bg);
+  backdrop-filter: saturate(180%) blur(var(--glass-2-blur));
+  -webkit-backdrop-filter: saturate(180%) blur(var(--glass-2-blur));
+  border-radius: var(--radius-lg);
+  border: 0.5px solid var(--border-hairline);
+  box-shadow: var(--shadow-sm);
+  transition: transform 200ms var(--ease-out), box-shadow 200ms ease;
+}
+
+.v5-card:hover,
+.ios26-card:hover,
+.v2-card:hover,
+.v4-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.ios26-card-highlight {
+  background: var(--accent-bg);
+  backdrop-filter: saturate(180%) blur(var(--glass-2-blur));
+  -webkit-backdrop-filter: saturate(180%) blur(var(--glass-2-blur));
+  border-radius: var(--radius-lg);
+  border: 0.5px solid var(--border-focus);
+  box-shadow: var(--shadow-sm);
+}
+
+.ios26-card-filled {
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border-hairline);
+  box-shadow: var(--shadow-xs);
+}
+
+.ios26-alert {
+  background: var(--glass-2-bg);
+  backdrop-filter: blur(var(--glass-1-blur));
+  -webkit-backdrop-filter: blur(var(--glass-1-blur));
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border-hairline);
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--text-sm);
+}
+
+.ios26-card-interactive {
+  cursor: pointer;
+}
+
+.ios26-card-interactive:active {
+  transform: scale(0.97);
+}
+
+.v5-card-interactive {
+  cursor: pointer;
+}
+
+.v5-card-interactive:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.v5-card-interactive:active {
+  transform: scale(0.98);
+}
+
+/* Sidebar compat */
+.v5-sidebar {
+  background: var(--glass-1-bg);
+  backdrop-filter: saturate(180%) blur(var(--glass-1-blur));
+  -webkit-backdrop-filter: saturate(180%) blur(var(--glass-1-blur));
+  border-right: 0.5px solid var(--border-hairline);
+}
+
+.v5-sidebar-item {
+  transition: all var(--duration-fast) var(--ease-out);
+  border-radius: var(--radius-sm);
+  position: relative;
+}
+
+.v5-sidebar-item:hover {
+  background: var(--border-hairline);
+}
+
+.v5-sidebar-active {
+  background: var(--accent-bg) !important;
+  color: var(--accent) !important;
+  font-weight: 600;
+}
+
+/* Old page/card/muted compat */
+.page {
+  background: var(--bg);
+}
+
+.muted {
+  color: var(--fg-muted);
+}
+
+/* Old hero compat */
+.v4-hero,
+.v3-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+  border-radius: var(--radius-lg);
+  color: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.v4-hero::before,
+.v3-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* Grouped inset compat */
+.v5-grouped {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+}
+
+.v5-grouped-row {
+  border-bottom: 0.5px solid var(--border-hairline);
+  padding: var(--sp-3) var(--sp-4);
+}
+
+.v5-grouped-row:last-child {
+  border-bottom: none;
+}
+
+/* iOS26 grid compat */
+@media (max-width: 767px) {
+  .ios26-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .ios26-grid-full {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 768px) {
+  .ios26-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+}
+
+/* iOS26 pill / floating bar compat */
+.ios26-pill {
+  border-radius: var(--radius-full);
+  padding: 6px 16px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  transition: all 250ms var(--ease-out);
+}
+
+.ios26-floating-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-sidebar);
+  padding: 0 var(--sp-4);
+  padding-bottom: max(env(safe-area-inset-bottom), 12px);
+  pointer-events: none;
+}
+
+.ios26-floating-bar>* {
+  pointer-events: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════════════ */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes spring-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(8px);
+  }
+
+  60% {
+    transform: scale(1.02) translateY(-2px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+
+  to {
+    opacity: 1;
+    max-height: 600px;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulse-dot {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.4;
+    transform: scale(1.6);
+  }
+}
+
+@keyframes modal-backdrop {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-sheet {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+}
+
+@keyframes drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes drawer-out {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes blink-cursor {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ── Animation utilities ── */
+.animate-fade-in {
+  animation: fade-in var(--duration-normal) var(--ease-out) both;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 450ms var(--ease-out) both;
+}
+
+.animate-scale-in {
+  animation: scale-in 350ms var(--ease-out) both;
+}
+
+.animate-spring-in {
+  animation: spring-in 500ms var(--ease-out) both;
+}
+
+.animate-slide-up {
+  animation: slide-up 450ms var(--ease-out) both;
+}
+
+.animate-shimmer {
+  background-image: linear-gradient(90deg, transparent 0%, var(--border-hairline) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+}
+
+.animate-modal-backdrop {
+  animation: modal-backdrop var(--duration-normal) ease both;
+}
+
+.animate-modal-sheet {
+  animation: modal-sheet 400ms var(--ease-out) both;
+}
+
+.animate-toast-in {
+  animation: toast-in 300ms var(--ease-out) both;
+}
+
+.animate-toast-out {
+  animation: toast-out 200ms ease-in both;
+}
+
+.animate-drawer-in {
+  animation: drawer-in 300ms var(--ease-out) both;
+}
+
+.animate-drawer-out {
+  animation: drawer-out 200ms ease-in both;
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Old animation compat aliases */
+.animate-fadeInUp {
+  animation: fade-in-up 450ms var(--ease-out) both;
+}
+
+.animate-fadeIn {
+  animation: fade-in 250ms ease both;
+}
+
+.animate-scaleIn {
+  animation: scale-in 350ms var(--ease-out) both;
+}
+
+.animate-ios26-spring {
+  animation: spring-in 500ms var(--ease-out) both;
+}
+
+.animate-ios26-float {
+  animation: fade-in-up 600ms var(--ease-out) both;
+}
+
+.page-enter {
+  animation: slide-up 450ms var(--ease-out);
+}
+
+/* Stagger delays */
+.delay-1 {
+  animation-delay: 50ms;
+}
+
+.delay-2 {
+  animation-delay: 100ms;
+}
+
+.delay-3 {
+  animation-delay: 150ms;
+}
+
+.delay-4 {
+  animation-delay: 200ms;
+}
+
+.delay-5 {
+  animation-delay: 250ms;
+}
+
+.delay-6 {
+  animation-delay: 300ms;
+}
+
+/* ── Table / interactions ── */
+.table-row-hover {
+  transition: background var(--duration-fast) ease;
+}
+
+.table-row-hover:hover {
+  background: var(--border-hairline);
+}
+
+.tap-feedback {
+  transition: transform 80ms ease;
+}
+
+.tap-feedback:active {
+  transform: scale(0.97);
+}
+
+.card-hover {
+  transition: transform var(--duration-normal) var(--ease-out), box-shadow var(--duration-normal) ease;
+}
+
+.card-hover:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+
+  .page-enter,
+  .animate-shimmer,
+  .animate-fade-in,
+  .animate-fade-in-up,
+  .animate-scale-in,
+  .animate-spring-in,
+  .animate-slide-up,
+  .animate-fadeInUp,
+  .animate-fadeIn,
+  .animate-scaleIn,
+  .animate-ios26-spring,
+  .animate-ios26-float {
+    animation: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+  .table-mobile-cards thead {
+    display: none;
+  }
+
+  .table-mobile-cards table,
+  .table-mobile-cards tbody,
+  .table-mobile-cards tr,
+  .table-mobile-cards td {
+    display: block;
+    width: 100%;
+  }
+
+  .table-mobile-cards tbody {
+    padding: var(--sp-2);
+    display: grid;
+    gap: var(--sp-2);
+  }
+
+  .table-mobile-cards tr {
+    border-radius: var(--radius);
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-xs);
+    padding: var(--sp-3);
+  }
+
+  .table-mobile-cards td {
+    padding: var(--sp-1) 2px !important;
+    border: 0;
+  }
+
+  button,
+  a[role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
