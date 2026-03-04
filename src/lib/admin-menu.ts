@@ -28,6 +28,7 @@ export function filterMenuByRole(items: AdminMenuItem[], role: string): AdminMen
 /* ── Group-level colour tokens (gradient pair + accent for active state) ── */
 export const GROUP_COLORS: Record<string, { from: string; to: string; accent: string; bg: string; text: string; icon: string }> = {
   "Tổng quan": { from: "from-indigo-600", to: "to-blue-600", accent: "bg-indigo-600", bg: "bg-indigo-50", text: "text-indigo-700", icon: "" },
+  "Công việc": { from: "from-sky-500", to: "to-blue-500", accent: "bg-sky-600", bg: "bg-sky-50", text: "text-sky-700", icon: "" },
   "Khách & Tư vấn": { from: "from-amber-500", to: "to-orange-500", accent: "bg-amber-600", bg: "bg-amber-50", text: "text-amber-700", icon: "" },
   "Tài chính": { from: "from-emerald-600", to: "to-teal-600", accent: "bg-emerald-600", bg: "bg-emerald-50", text: "text-emerald-700", icon: "" },
   "Học viên & Lịch": { from: "from-violet-600", to: "to-purple-600", accent: "bg-violet-600", bg: "bg-violet-50", text: "text-violet-700", icon: "" },
@@ -43,6 +44,24 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tổng quan",
     keywords: ["home", "tong quan", "trang chu", "dashboard"],
     icon: "🏠",
+  },
+  {
+    key: "workbench-page",
+    label: "Inbox Trực Page",
+    href: "/workbench/page",
+    group: "Công việc",
+    keywords: ["inbox", "truc page", "qualify", "assign", "sdt"],
+    icon: "📥",
+    roles: ["admin", "manager", "direct_page"],
+  },
+  {
+    key: "workbench-branch",
+    label: "Công việc Chi nhánh",
+    href: "/workbench/branch",
+    group: "Công việc",
+    keywords: ["goi", "hen", "ky", "branch", "chi nhanh", "cong viec"],
+    icon: "📞",
+    roles: ["admin", "manager", "telesales"],
   },
   {
     key: "kpi-daily",

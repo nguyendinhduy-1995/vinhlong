@@ -62,6 +62,20 @@ export async function POST(req: Request) {
           },
           tx
         );
+        // V2: Also log ASSIGNED_OWNER for KPI SLA tracking
+        await logLeadEvent(
+          {
+            leadId: lead.id,
+            type: "ASSIGNED_OWNER",
+            note: "Assigned to owner",
+            meta: {
+              toOwnerId: owner.id,
+              source: "api.leads.assign",
+            },
+            createdById: authResult.auth.sub,
+          },
+          tx
+        );
         updated += 1;
       }
 
