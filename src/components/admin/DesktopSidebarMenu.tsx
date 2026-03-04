@@ -16,7 +16,7 @@ function normalizeVi(input: string) {
   return input.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
 }
 
-const DEFAULT_GROUPS = ["Tổng quan", "Khách & Tư vấn", "Học viên & Lịch", "Tài chính", "Tự động hoá", "Quản trị"] as const;
+const DEFAULT_GROUPS = ["Tổng quan", "Công việc", "Khách & Tư vấn", "Học viên & Lịch", "Tài chính", "Tự động hoá", "Quản trị"] as const;
 
 export function DesktopSidebarMenu({ permissions, isAdmin, userRole, items = ADMIN_MENU }: DesktopSidebarMenuProps) {
   const pathname = usePathname();
