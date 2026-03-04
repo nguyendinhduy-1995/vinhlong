@@ -44,6 +44,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tổng quan",
     keywords: ["home", "tong quan", "trang chu", "dashboard"],
     icon: "🏠",
+    roles: BRANCH_AND_ADMIN,
   },
   {
     key: "workbench-page",
@@ -139,6 +140,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Khách & Tư vấn",
     keywords: ["lead", "kh", "khach", "khach hang", "data", "sdt", "sđt"],
     icon: "👤",
+    roles: BRANCH_AND_ADMIN,
   },
   {
     key: "leads-board",
@@ -147,6 +149,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Khách & Tư vấn",
     keywords: ["pipeline", "kanban", "trang thai", "lead board"],
     icon: "📋",
+    roles: ADMIN_ROLES,
   },
   {
     key: "outbound",
@@ -164,6 +167,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tài chính",
     keywords: ["thu tien", "bien lai", "receipt", "doanh thu"],
     icon: "🧾",
+    roles: BRANCH_AND_ADMIN,
   },
   {
     key: "expenses-monthly",
@@ -189,6 +193,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Tài chính",
     keywords: ["payroll", "luong", "hoa hong", "commission"],
     icon: "📊",
+    roles: ADMIN_ROLES,
   },
   {
     key: "hr-kpi",
@@ -206,6 +211,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Học viên & Lịch",
     keywords: ["student", "hoc vien", "hoc vien moi"],
     icon: "🧑‍🎓",
+    roles: BRANCH_AND_ADMIN,
   },
   {
     key: "courses",
@@ -214,6 +220,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Học viên & Lịch",
     keywords: ["course", "khoa", "lop", "dao tao"],
     icon: "📚",
+    roles: ADMIN_ROLES,
   },
   {
     key: "schedule",
@@ -222,6 +229,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     group: "Học viên & Lịch",
     keywords: ["lich", "ca hoc", "calendar", "lich hoc"],
     icon: "🗓️",
+    roles: BRANCH_AND_ADMIN,
   },
   {
     key: "admin-student-content",
