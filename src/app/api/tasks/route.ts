@@ -8,7 +8,7 @@ import { isAdminRole } from "@/lib/admin-auth";
 import { ensureNotificationSchema } from "@/lib/notifications-db";
 import { KpiDateError, resolveKpiDateParam } from "@/lib/services/kpi-daily";
 
-const SCOPES: NotificationScope[] = ["FINANCE", "FOLLOWUP", "SCHEDULE", "SYSTEM"];
+const SCOPES: NotificationScope[] = ["FINANCE", "FOLLOWUP", "SCHEDULE", "SYSTEM", "SUPPORT"];
 const PRIORITIES: NotificationPriority[] = ["HIGH", "MEDIUM", "LOW"];
 const TASK_TYPES = ["TASK", "REMINDER", "CALL_LIST"] as const;
 type TaskType = (typeof TASK_TYPES)[number];

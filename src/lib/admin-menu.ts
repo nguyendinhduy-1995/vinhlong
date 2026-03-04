@@ -64,6 +64,23 @@ export const ADMIN_MENU: AdminMenuItem[] = [
     roles: ["admin", "manager", "telesales"],
   },
   {
+    key: "support",
+    label: "Hỗ trợ",
+    href: "/support",
+    group: "Công việc",
+    keywords: ["ho tro", "ticket", "van de", "support", "ket"],
+    icon: "🎫",
+  },
+  {
+    key: "admin-support",
+    label: "Quản lý Hỗ trợ",
+    href: "/admin/support",
+    group: "Công việc",
+    keywords: ["ho tro", "ticket", "support", "quan ly"],
+    icon: "📋",
+    roles: ADMIN_ROLES,
+  },
+  {
     key: "kpi-daily",
     label: "KPI",
     href: "/kpi/daily",
